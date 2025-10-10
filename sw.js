@@ -3,13 +3,20 @@ const CACHE_NAME = 'icd9-lookup-v1';
 const STATIC_CACHE = 'icd9-static-v1';
 const DATA_CACHE = 'icd9-data-v1';
 
-// Files to cache for offline use
+// Get base path for flexible deployment
+function getBasePath() {
+  const scope = self.registration.scope;
+  const basePath = scope.endsWith('/') ? scope : scope + '/';
+  return basePath;
+}
+
+// Files to cache for offline use - using relative paths
 const STATIC_FILES = [
-  '/',
-  '/index.html',
-  '/icd9.json',
-  '/fuse.min.js',
-  '/manifest.json'
+  './',
+  './index.html',
+  './icd9.json',
+  './fuse.min.js',
+  './manifest.json'
 ];
 
 // Install event - cache static files
@@ -19,7 +26,15 @@ self.addEventListener('install', event => {
     caches.open(STATIC_CACHE)
       .then(cache => {
         console.log('Service Worker: Caching static files');
-        return cache.addAll(STATIC_FILES);
+        // Try to cache files, but don't fail if some are missing
+        return Promise.allSettled(
+          STATIC_FILES.map(file => 
+            cache.add(file).catch(err => {
+              console.warn(`Service Worker: Failed to cache ${file}:`, err);
+              return null;
+            })
+          )
+        );
       })
       .then(() => {
         console.log('Service Worker: Static files cached');
@@ -27,6 +42,8 @@ self.addEventListener('install', event => {
       })
       .catch(err => {
         console.error('Service Worker: Failed to cache static files', err);
+        // Don't fail the installation if caching fails
+        return self.skipWaiting();
       })
   );
 });
@@ -102,9 +119,15 @@ async function handleDocumentRequest(request) {
     return networkResponse;
   } catch (error) {
     console.error('Service Worker: Document fetch failed', error);
-    // Return a basic offline page if available
-    const offlineResponse = await caches.match('/index.html');
-    return offlineResponse || new Response('Offline - Please check your connection', {
+    // Try to find index.html in cache with different possible paths
+    const possiblePaths = ['./index.html', '/index.html', 'index.html'];
+    for (const path of possiblePaths) {
+      const offlineResponse = await caches.match(path);
+      if (offlineResponse) {
+        return offlineResponse;
+      }
+    }
+    return new Response('Offline - Please check your connection', {
       status: 503,
       statusText: 'Service Unavailable'
     });
@@ -219,10 +242,10 @@ self.addEventListener('sync', event => {
 async function doBackgroundSync() {
   try {
     // Try to update data when back online
-    const response = await fetch('/icd9.json');
+    const response = await fetch('./icd9.json');
     if (response.ok) {
       const cache = await caches.open(DATA_CACHE);
-      await cache.put('/icd9.json', response);
+      await cache.put('./icd9.json', response);
       console.log('Service Worker: Data updated in background');
     }
   } catch (error) {
