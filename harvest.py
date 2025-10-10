@@ -5,7 +5,7 @@ Builds a single JSON with ICD-9-CM diagnoses (incl. V/E) + procedures using
 **NLM Clinical Table Search Service** long titles, and enriches with consumer-friendly
 synonyms from the Clinical “conditions” table when available.
 
-Output: icd9.rich.json (compact one-line JSON)
+Output: icd9.json (compact one-line JSON)
 Python: 3.9+ (stdlib only). No keys, no UMLS account needed.
 
 Structure per record:
@@ -26,7 +26,7 @@ COND_BASE = "https://clinicaltables.nlm.nih.gov/api/conditions/v3/search"
 # Tunables
 PAGE = 500            # API max
 SLEEP = 0.15          # polite pause between requests
-OUT = "icd9.rich.json"
+OUT = "icd9.json"
 
 # We partition by code prefix to cover the whole table without hitting per-query result caps.
 DX_PREFIXES = [str(i) for i in range(10)] + ["V", "E"]

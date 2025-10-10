@@ -3,7 +3,15 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ICD-9 Lookup (rich JSON + cache + favourites)</title>
+<title>ICD-9 Lookup</title>
+<meta name="description" content="Offline-enabled ICD-9 code lookup with search and favorites" />
+<meta name="theme-color" content="#1a56db" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="ICD-9 Lookup" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
 <style>
   :root { --gap: 12px; }
   body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; background:#fafafa; color:#111; }
@@ -32,9 +40,82 @@
     font-size:20px; padding:2px; color:#c7c7c7;
   }
   .star[aria-pressed="true"] { color:#f5b900; text-shadow:0 0 0.5px #b88900; }
+  
+  /* Offline indicator */
+  .offline-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #ff6b6b;
+    color: white;
+    padding: 8px 16px;
+    text-align: center;
+    font-size: 0.9rem;
+    z-index: 1000;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+  }
+  .offline-indicator.show {
+    transform: translateY(0);
+  }
+  .offline-indicator.online {
+    background: #51cf66;
+  }
+  
+  /* Install prompt */
+  .install-prompt {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background: #1a56db;
+    color: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    display: none;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  .install-prompt.show {
+    display: block;
+  }
+  .install-prompt button {
+    background: white;
+    color: #1a56db;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    margin: 8px 8px 0 0;
+    cursor: pointer;
+  }
+  .install-prompt .close {
+    background: transparent;
+    color: white;
+    border: 1px solid white;
+  }
 </style>
 </head>
 <body>
+  <!-- Offline indicator -->
+  <div id="offline-indicator" class="offline-indicator">
+    <span id="offline-text">You're offline - using cached data</span>
+  </div>
+  
+  <!-- Install prompt -->
+  <div id="install-prompt" class="install-prompt">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="flex: 1;">
+        <strong>Install ICD-9 Lookup</strong>
+        <div style="font-size: 0.9rem; margin-top: 4px;">Get quick access to ICD-9 codes offline</div>
+      </div>
+      <button id="install-btn">Install</button>
+      <button id="install-close" class="close">×</button>
+    </div>
+  </div>
+
   <header>
     <h1>ICD-9 Lookup</h1>
     <span class="pill" id="pill-count">0 codes</span>
@@ -43,7 +124,7 @@
 
   <div class="controls">
     <input id="q" type="text" placeholder="Search by code, name, or synonyms… (e.g., 296.20, depression, cholera)" autocomplete="off" />
-    <button id="btn-refresh" title="Fetch icd9.rich.json and update cache">Refresh dataset</button>
+    <button id="btn-refresh" title="Fetch icd9.json and update cache">Refresh dataset</button>
     <button id="btn-clear" title="Clear cached dataset">Clear cache</button>
     <button id="btn-export" title="Download current dataset JSON from cache">Export JSON</button>
   </div>
@@ -67,10 +148,10 @@
   </section>
 
   <!-- Fuse.js for fuzzy search -->
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+  <script src="fuse.min.js"></script>
   <script>
   // ===== Config =====
-  const DATA_URL = 'icd9.rich.json';   // place this file next to this HTML
+  const DATA_URL = 'icd9.json';   // place this file next to this HTML
   const DB_NAME  = 'icd9-cache';
   const STORE    = 'dataset';
   const KEY      = 'icd9-rich';
@@ -340,10 +421,96 @@
     if (!cached) return alert('Nothing in cache.');
     const blob = new Blob([JSON.stringify(cached.data)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = Object.assign(document.createElement('a'), { href:url, download:'icd9.rich.json' });
+    const a = Object.assign(document.createElement('a'), { href:url, download:'icd9.json' });
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
   });
+
+  // ===== Offline Detection & PWA =====
+  let isOnline = navigator.onLine;
+  let deferredPrompt = null;
+  
+  // Offline indicator elements
+  const offlineIndicator = document.getElementById('offline-indicator');
+  const offlineText = document.getElementById('offline-text');
+  const installPrompt = document.getElementById('install-prompt');
+  const installBtn = document.getElementById('install-btn');
+  const installClose = document.getElementById('install-close');
+  
+  // Update offline indicator
+  function updateOfflineStatus() {
+    if (isOnline) {
+      offlineIndicator.classList.remove('show');
+      offlineText.textContent = 'You\'re online - data will sync';
+    } else {
+      offlineIndicator.classList.add('show');
+      offlineText.textContent = 'You\'re offline - using cached data';
+    }
+  }
+  
+  // Online/offline event listeners
+  window.addEventListener('online', () => {
+    isOnline = true;
+    updateOfflineStatus();
+    // Try to refresh data when back online
+    if (!DATA) {
+      fetchAndCache().catch(console.error);
+    }
+  });
+  
+  window.addEventListener('offline', () => {
+    isOnline = false;
+    updateOfflineStatus();
+  });
+  
+  // PWA Install prompt
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installPrompt.classList.add('show');
+  });
+  
+  installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('Install prompt outcome:', outcome);
+      deferredPrompt = null;
+      installPrompt.classList.remove('show');
+    }
+  });
+  
+  installClose.addEventListener('click', () => {
+    installPrompt.classList.remove('show');
+  });
+  
+  // Service Worker registration
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+      try {
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        console.log('Service Worker registered:', registration);
+        
+        // Handle updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New version available
+              if (confirm('New version available. Reload to update?')) {
+                window.location.reload();
+              }
+            }
+          });
+        });
+      } catch (error) {
+        console.error('Service Worker registration failed:', error);
+      }
+    });
+  }
+  
+  // Update initial offline status
+  updateOfflineStatus();
 
   // ===== Boot =====
   (async function boot(){
@@ -355,7 +522,7 @@
     } catch (e) {
       console.error(e);
       setMeta({ cacheState: 'error' });
-      alert('Failed to initialize: ' + e.message + '\nPlace icd9.rich.json next to this HTML.');
+      alert('Failed to initialize: ' + e.message + '\nPlace icd9.json next to this HTML.');
     }
   })();
   </script>
