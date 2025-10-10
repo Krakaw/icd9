@@ -33,19 +33,23 @@
   </div>
 
   <header>
-    <h1><img src="assets/icons/icon-96.png" alt="ICD-9 Lookup" /> ICD-9 Lookup</h1>
-    <span class="pill" id="pill-count">0 codes</span>
-    <span class="pill" id="pill-source">source: —</span>
+    <h1><img src="assets/icons/icon-96.png" alt="ICD-9 Lookup" /></h1>
+    <span class="pill admin-only" id="pill-count">0 codes</span>
+    <span class="pill admin-only" id="pill-source">source: —</span>
+    <label class="admin-toggle">
+      <input type="checkbox" id="admin-checkbox" />
+      <span>show admin</span>
+    </label>
   </header>
 
   <div class="controls">
     <input id="q" type="text" placeholder="Search by code, name, or synonyms… (e.g., 296.20, depression, cholera)" autocomplete="off" />
-    <button id="btn-refresh" title="Fetch icd9.json and update cache">Refresh dataset</button>
-    <button id="btn-clear" title="Clear cached dataset">Clear cache</button>
-    <button id="btn-export" title="Download current dataset JSON from cache">Export JSON</button>
+    <button class="admin-only" id="btn-refresh" title="Fetch icd9.json and update cache">Refresh dataset</button>
+    <button class="admin-only" id="btn-clear" title="Clear cached dataset">Clear cache</button>
+    <button class="admin-only" id="btn-export" title="Download current dataset JSON from cache">Export JSON</button>
   </div>
 
-  <div id="meta">
+  <div id="meta" class="admin-only">
     <span>Cache: <strong id="cache-state" class="muted">checking…</strong></span>
     <span>Version: <code id="cache-version">—</code></span>
     <span>Updated: <span id="cache-updated" class="muted">—</span></span>

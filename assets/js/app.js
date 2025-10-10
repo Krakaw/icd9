@@ -72,6 +72,7 @@ const els = {
   btnClear: document.getElementById('btn-clear'),
   btnExport: document.getElementById('btn-export'),
   resTitle: document.getElementById('resTitle'),
+  adminCheckbox: document.getElementById('admin-checkbox'),
 };
 
 // ===== Helpers =====
@@ -242,6 +243,14 @@ function onStarClick(e){
 }
 els.results.addEventListener('click', onStarClick);
 els.favs.addEventListener('click', onStarClick);
+
+// Admin toggle functionality
+function toggleAdminElements() {
+  const isAdminEnabled = els.adminCheckbox.checked;
+  document.body.classList.toggle('admin-enabled', isAdminEnabled);
+}
+
+els.adminCheckbox.addEventListener('change', toggleAdminElements);
 
 els.btnRefresh.addEventListener('click', async () => {
   els.btnRefresh.disabled = true;

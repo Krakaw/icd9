@@ -82,3 +82,29 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#333; display:flex; align-items:cen
   color: white;
   border: 1px solid white;
 }
+
+/* Admin toggle */
+.admin-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #666;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.admin-toggle input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Admin elements that can be hidden */
+body .admin-only {
+  display: none !important;
+}
+
+/* Show admin elements when admin is enabled */
+body.admin-enabled .admin-only {
+  display: block !important;
+}
