@@ -14,8 +14,8 @@ function getBasePath() {
 const STATIC_FILES = [
   './',
   './index.html',
-  './icd9.json',
-  './fuse.min.js',
+  './data/icd9.json',
+  './assets/js/fuse.min.js',
   './manifest.json'
 ];
 
@@ -242,10 +242,10 @@ self.addEventListener('sync', event => {
 async function doBackgroundSync() {
   try {
     // Try to update data when back online
-    const response = await fetch('./icd9.json');
+    const response = await fetch('./data/icd9.json');
     if (response.ok) {
       const cache = await caches.open(DATA_CACHE);
-      await cache.put('./icd9.json', response);
+      await cache.put('./data/icd9.json', response);
       console.log('Service Worker: Data updated in background');
     }
   } catch (error) {
@@ -259,8 +259,8 @@ self.addEventListener('push', event => {
     const data = event.data.json();
     const options = {
       body: data.body,
-      icon: '/icon-192.png',
-      badge: '/icon-72.png',
+      icon: '/assets/icons/icon-192.png',
+      badge: '/assets/icons/icon-72.png',
       vibrate: [100, 50, 100],
       data: {
         dateOfArrival: Date.now(),

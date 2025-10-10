@@ -10,8 +10,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="ICD-9 Lookup" />
 <link rel="manifest" href="manifest.json" />
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png" />
+<link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
 <style>
   :root { --gap: 12px; }
   body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; background:#fafafa; color:#111; }
@@ -148,10 +148,10 @@
   </section>
 
   <!-- Fuse.js for fuzzy search -->
-  <script src="fuse.min.js"></script>
+  <script src="assets/js/fuse.min.js"></script>
   <script>
   // ===== Config =====
-  const DATA_URL = 'icd9.json';   // place this file next to this HTML
+  const DATA_URL = 'data/icd9.json';   // place this file in data directory
   const DB_NAME  = 'icd9-cache';
   const STORE    = 'dataset';
   const KEY      = 'icd9-rich';
