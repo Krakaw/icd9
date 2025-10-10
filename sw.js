@@ -16,6 +16,8 @@ const STATIC_FILES = [
   './index.html',
   './data/icd9.json',
   './assets/js/fuse.min.js',
+  './assets/js/app.js',
+  './assets/css/styles.css',
   './manifest.json'
 ];
 
