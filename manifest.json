@@ -1,7 +1,7 @@
 {
   "name": "ICD-9 Lookup",
   "short_name": "ICD-9",
-  "description": "Offline-enabled ICD-9 code lookup with search and favorites",
+  "description": "ICD-9 code lookup with search and favorites",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#fafafa",

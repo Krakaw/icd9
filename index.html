@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>ICD-9 Lookup</title>
-<meta name="description" content="Offline-enabled ICD-9 code lookup with search and favorites" />
+<meta name="description" content="ICD-9 code lookup with search and favorites" />
 <meta name="theme-color" content="#1a1a1a" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -15,23 +15,6 @@
 <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
 <body>
-  <!-- Offline indicator -->
-  <div id="offline-indicator" class="offline-indicator">
-    <span id="offline-text">You're offline - using cached data</span>
-  </div>
-  
-  <!-- Install prompt -->
-  <div id="install-prompt" class="install-prompt">
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <div style="flex: 1;">
-        <strong>Install ICD-9 Lookup</strong>
-        <div style="font-size: 0.9rem; margin-top: 4px;">Get quick access to ICD-9 codes offline</div>
-      </div>
-      <button id="install-btn">Install</button>
-      <button id="install-close" class="close">×</button>
-    </div>
-  </div>
-
   <header>
     <h1><img src="assets/icons/icon-96.png" alt="ICD-9 Lookup" /></h1>
     <span class="pill admin-only" id="pill-count">0 codes</span>
