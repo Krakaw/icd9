@@ -53,7 +53,12 @@ async function sha256Hex(buffer) {
 }
 
 // ===== Customizations (localStorage overlay) =====
-let CUSTOMIZATIONS = JSON.parse(localStorage.getItem(CUSTOM_STORAGE_KEY) || '{}');
+function safeParse(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) || fallback; }
+  catch { return fallback; }
+}
+
+let CUSTOMIZATIONS = safeParse(CUSTOM_STORAGE_KEY, {});
 
 function saveCustomizations() {
   localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify(CUSTOMIZATIONS));
@@ -85,8 +90,8 @@ function setCustomizationsForCode(code, overrides) {
 let FUSE = null;
 let DATA = null;
 let BASE_DATA = null; // raw data before customizations
-let FAVS = new Set(JSON.parse(localStorage.getItem(FAV_STORAGE_KEY) || '[]'));
-let FAV_LRU = JSON.parse(localStorage.getItem(FAV_LRU_KEY) || '{}'); // code -> ts
+let FAVS = new Set(safeParse(FAV_STORAGE_KEY, []));
+let FAV_LRU = safeParse(FAV_LRU_KEY, {}); // code -> ts
 
 const els = {
   q: document.getElementById('q'),
