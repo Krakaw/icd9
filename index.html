@@ -67,6 +67,46 @@
     <div id="results" class="grid"></div>
   </section>
 
+  <!-- Edit Modal Overlay -->
+  <div id="edit-modal-overlay" class="modal-overlay"></div>
+
+  <!-- Edit Modal -->
+  <div id="edit-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+    <div class="modal-header">
+      <h2 id="edit-modal-title">Edit <span class="code" id="edit-code"></span></h2>
+      <button type="button" class="modal-close" id="edit-cancel-btn" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="edit-name">Name</label>
+        <input type="text" id="edit-name" class="form-input" placeholder="Full name" />
+      </div>
+      <div class="form-group">
+        <label for="edit-short">Short name</label>
+        <input type="text" id="edit-short" class="form-input" placeholder="Short display name" />
+      </div>
+      <div class="form-group">
+        <label for="edit-kind">Kind</label>
+        <input type="text" id="edit-kind" class="form-input" placeholder="e.g. dx, proc" />
+      </div>
+      <div class="form-group">
+        <label>Synonyms</label>
+        <div id="edit-syn-container"></div>
+      </div>
+      <div class="form-group">
+        <label>Tags <span class="muted" style="font-weight:normal;font-size:.85rem">(searchable custom labels)</span></label>
+        <div id="edit-tags-container"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" id="edit-reset-btn" class="btn-reset" style="display:none">Reset to default</button>
+      <div class="modal-footer-actions">
+        <button type="button" id="edit-cancel-btn-footer" class="btn-cancel">Cancel</button>
+        <button type="button" id="edit-save-btn" class="btn-save">Save</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Fuse.js for fuzzy search -->
   <script src="assets/js/fuse.min.js"></script>
   <!-- Main application JavaScript -->

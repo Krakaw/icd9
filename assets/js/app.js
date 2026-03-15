@@ -6,6 +6,7 @@ const KEY      = 'icd9-rich';
 const MAX_RESULTS = 100;
 const FAV_STORAGE_KEY = 'icd9:favs'; // localStorage string[] of codes
 const FAV_LRU_KEY     = 'icd9:favs:lru'; // recency map {code: timestamp}
+const CUSTOM_STORAGE_KEY = 'icd9:customizations'; // code -> partial record overrides
 
 // ===== IndexedDB (dataset cache) =====
 function idbOpen() {
@@ -51,11 +52,46 @@ async function sha256Hex(buffer) {
   return arr.map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
+// ===== Customizations (localStorage overlay) =====
+function safeParse(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) || fallback; }
+  catch { return fallback; }
+}
+
+let CUSTOMIZATIONS = safeParse(CUSTOM_STORAGE_KEY, {});
+
+function saveCustomizations() {
+  localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify(CUSTOMIZATIONS));
+}
+
+function applyCustomizations(data) {
+  if (!Object.keys(CUSTOMIZATIONS).length) return data;
+  return data.map(rec => {
+    const custom = CUSTOMIZATIONS[rec.code];
+    if (!custom) return rec;
+    return Object.assign({}, rec, custom);
+  });
+}
+
+function getCustomizationsForCode(code) {
+  return CUSTOMIZATIONS[code] || null;
+}
+
+function setCustomizationsForCode(code, overrides) {
+  if (overrides === null) {
+    delete CUSTOMIZATIONS[code];
+  } else {
+    CUSTOMIZATIONS[code] = overrides;
+  }
+  saveCustomizations();
+}
+
 // ===== State =====
 let FUSE = null;
 let DATA = null;
-let FAVS = new Set(JSON.parse(localStorage.getItem(FAV_STORAGE_KEY) || '[]'));
-let FAV_LRU = JSON.parse(localStorage.getItem(FAV_LRU_KEY) || '{}'); // code -> ts
+let BASE_DATA = null; // raw data before customizations
+let FAVS = new Set(safeParse(FAV_STORAGE_KEY, []));
+let FAV_LRU = safeParse(FAV_LRU_KEY, {}); // code -> ts
 
 const els = {
   q: document.getElementById('q'),
@@ -73,6 +109,8 @@ const els = {
   btnExport: document.getElementById('btn-export'),
   resTitle: document.getElementById('resTitle'),
   adminCheckbox: document.getElementById('admin-checkbox'),
+  editModal: document.getElementById('edit-modal'),
+  editModalOverlay: document.getElementById('edit-modal-overlay'),
 };
 
 // ===== Helpers =====
@@ -94,6 +132,9 @@ function touchFav(code){ FAV_LRU[code] = Date.now(); }
 // ===== Cards =====
 function cardHTML(rec){
   const fav = isFav(rec.code);
+  const tagsHtml = Array.isArray(rec.tags) && rec.tags.length
+    ? `<div class="tags">${rec.tags.map(t=>`<span class="tag-pill">${escapeHtml(t)}</span>`).join('')}</div>`
+    : '';
   return `
     <button class="star" title="${fav?'Unfavourite':'Favourite'}" aria-pressed="${fav?'true':'false'}" data-code="${rec.code}" aria-label="Favourite ${rec.code}">${fav?'★':'☆'}</button>
     <div style="min-width:86px">
@@ -104,6 +145,7 @@ function cardHTML(rec){
       <div class="name">${escapeHtml(rec.name || '')}</div>
       ${rec.short ? `<div class="muted">${escapeHtml(rec.short)}</div>` : ''}
       ${Array.isArray(rec.syn) && rec.syn.length ? `<div class="syn">${rec.syn.slice(0,6).map(s=>`<code>${escapeHtml(s)}</code>`).join('')}</div>` : ''}
+      ${tagsHtml}
     </div>
   `;
 }
@@ -112,7 +154,9 @@ function renderSection(container, list){
   container.innerHTML = '';
   const frag = document.createDocumentFragment();
   list.forEach(rec => {
-    const card = document.createElement('div'); card.className = 'card';
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.code = rec.code;
     card.innerHTML = cardHTML(rec);
     frag.appendChild(card);
   });
@@ -173,9 +217,10 @@ function buildFuse(data) {
     ignoreLocation: true,
     minMatchCharLength: 2,
     keys: [
-      { name: 'code', weight: 0.45 },
-      { name: 'name', weight: 0.45 },
-      { name: 'syn',  weight: 0.10 },
+      { name: 'code',  weight: 0.40 },
+      { name: 'name',  weight: 0.40 },
+      { name: 'syn',   weight: 0.10 },
+      { name: 'tags',  weight: 0.10 },
     ]
   });
 }
@@ -184,7 +229,8 @@ function buildFuse(data) {
 async function loadFromCache() {
   const cached = await idbGet(KEY);
   if (cached && cached.data && Array.isArray(cached.data)) {
-    DATA = cached.data;
+    BASE_DATA = cached.data;
+    DATA = applyCustomizations(BASE_DATA);
     buildFuse(DATA);
     setMeta({
       count: DATA.length,
@@ -209,7 +255,8 @@ async function fetchAndCache() {
 
   await idbSet(KEY, { version, updated: Date.now(), data: json });
 
-  DATA = json;
+  BASE_DATA = json;
+  DATA = applyCustomizations(BASE_DATA);
   buildFuse(DATA);
   setMeta({
     count: DATA.length,
@@ -218,6 +265,172 @@ async function fetchAndCache() {
     updated: new Date().toLocaleString(),
     cacheState: 'updated'
   });
+}
+
+// ===== Edit Modal =====
+
+// Pill list widget state
+let editState = {
+  code: null,
+  syn: [],
+  tags: [],
+};
+
+function createPillInput(containerId, items, placeholder) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  const pillsEl = document.createElement('div');
+  pillsEl.className = 'pill-list';
+
+  function renderPills() {
+    pillsEl.innerHTML = '';
+    items.forEach((item, idx) => {
+      const pill = document.createElement('span');
+      pill.className = 'edit-pill';
+      pill.innerHTML = `${escapeHtml(item)} <button type="button" class="pill-remove" data-idx="${idx}" aria-label="Remove ${escapeHtml(item)}">×</button>`;
+      pillsEl.appendChild(pill);
+    });
+  }
+
+  const inputRow = document.createElement('div');
+  inputRow.className = 'pill-input-row';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = placeholder;
+  input.className = 'pill-text-input';
+  const addBtn = document.createElement('button');
+  addBtn.type = 'button';
+  addBtn.textContent = 'Add';
+  addBtn.className = 'pill-add-btn';
+
+  function addItem() {
+    const val = input.value.trim();
+    if (val && !items.includes(val)) {
+      items.push(val);
+      renderPills();
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); addItem(); }
+  });
+  addBtn.addEventListener('click', addItem);
+
+  pillsEl.addEventListener('click', e => {
+    const btn = e.target.closest('.pill-remove');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.idx, 10);
+    items.splice(idx, 1);
+    renderPills();
+  });
+
+  renderPills();
+  container.appendChild(pillsEl);
+  inputRow.appendChild(input);
+  inputRow.appendChild(addBtn);
+  container.appendChild(inputRow);
+}
+
+function getRecordByCode(code) {
+  if (!DATA) return null;
+  return DATA.find(r => r.code === code) || null;
+}
+
+function openEditModal(code) {
+  const rec = getRecordByCode(code);
+  if (!rec) return;
+
+  editState.code = code;
+  editState.syn = Array.isArray(rec.syn) ? [...rec.syn] : [];
+  editState.tags = Array.isArray(rec.tags) ? [...rec.tags] : [];
+
+  document.getElementById('edit-code').textContent = rec.code;
+  document.getElementById('edit-kind').value = rec.kind || '';
+  document.getElementById('edit-name').value = rec.name || '';
+  document.getElementById('edit-short').value = rec.short || '';
+
+  createPillInput('edit-syn-container', editState.syn, 'Add synonym…');
+  createPillInput('edit-tags-container', editState.tags, 'Add tag…');
+
+  // Show/hide reset button based on whether customizations exist
+  const hasCustom = !!getCustomizationsForCode(code);
+  document.getElementById('edit-reset-btn').style.display = hasCustom ? 'inline-flex' : 'none';
+
+  els.editModalOverlay.classList.add('show');
+  els.editModal.classList.add('show');
+  // Focus first field
+  setTimeout(() => document.getElementById('edit-name').focus(), 50);
+}
+
+function closeEditModal() {
+  els.editModalOverlay.classList.remove('show');
+  els.editModal.classList.remove('show');
+  editState.code = null;
+}
+
+function saveEdit() {
+  const code = editState.code;
+  if (!code) return;
+
+  const name = document.getElementById('edit-name').value.trim();
+  const short = document.getElementById('edit-short').value.trim();
+  const kind = document.getElementById('edit-kind').value.trim();
+  const syn = [...editState.syn];
+  const tags = [...editState.tags];
+
+  // Find the base (un-customized) record
+  const baseRec = BASE_DATA ? BASE_DATA.find(r => r.code === code) : null;
+
+  // Build overrides — only store what differs from base or is new
+  const overrides = {};
+  if (baseRec) {
+    if (name !== (baseRec.name || '')) overrides.name = name;
+    if (short !== (baseRec.short || '')) overrides.short = short;
+    if (kind !== (baseRec.kind || '')) overrides.kind = kind;
+    const baseSyn = Array.isArray(baseRec.syn) ? baseRec.syn : [];
+    if (JSON.stringify(syn) !== JSON.stringify(baseSyn)) overrides.syn = syn;
+  } else {
+    overrides.name = name;
+    overrides.short = short;
+    overrides.kind = kind;
+    overrides.syn = syn;
+  }
+  // tags always stored if non-empty (new field not in base)
+  if (tags.length) overrides.tags = tags;
+
+  if (Object.keys(overrides).length) {
+    setCustomizationsForCode(code, overrides);
+  } else {
+    // No changes from base, remove any stored customization
+    setCustomizationsForCode(code, null);
+  }
+
+  // Rebuild merged DATA and Fuse
+  if (BASE_DATA) {
+    DATA = applyCustomizations(BASE_DATA);
+    buildFuse(DATA);
+  }
+
+  closeEditModal();
+  renderSearch();
+}
+
+function resetToDefault() {
+  const code = editState.code;
+  if (!code) return;
+  if (!confirm(`Reset "${code}" to default? All edits and tags will be removed.`)) return;
+  setCustomizationsForCode(code, null);
+
+  if (BASE_DATA) {
+    DATA = applyCustomizations(BASE_DATA);
+    buildFuse(DATA);
+  }
+
+  closeEditModal();
+  renderSearch();
 }
 
 // ===== Events =====
@@ -241,8 +454,30 @@ function onStarClick(e){
   saveFavs();
   renderSearch(); // re-render both sections (pins)
 }
-els.results.addEventListener('click', onStarClick);
-els.favs.addEventListener('click', onStarClick);
+
+// card click to open edit modal (event delegation)
+function onCardClick(e) {
+  // Don't open edit if clicking the star button
+  if (e.target.closest('button.star')) return;
+  const card = e.target.closest('.card');
+  if (!card || !card.dataset.code) return;
+  openEditModal(card.dataset.code);
+}
+
+els.results.addEventListener('click', e => { onStarClick(e); onCardClick(e); });
+els.favs.addEventListener('click', e => { onStarClick(e); onCardClick(e); });
+
+// Edit modal buttons
+document.getElementById('edit-save-btn').addEventListener('click', saveEdit);
+document.getElementById('edit-cancel-btn').addEventListener('click', closeEditModal);
+document.getElementById('edit-cancel-btn-footer').addEventListener('click', closeEditModal);
+document.getElementById('edit-reset-btn').addEventListener('click', resetToDefault);
+els.editModalOverlay.addEventListener('click', closeEditModal);
+
+// Close modal on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && els.editModal.classList.contains('show')) closeEditModal();
+});
 
 // Admin toggle functionality
 function toggleAdminElements() {
@@ -267,7 +502,7 @@ els.btnRefresh.addEventListener('click', async () => {
 
 els.btnClear.addEventListener('click', async () => {
   await idbDel(KEY);
-  DATA = null; FUSE = null;
+  DATA = null; BASE_DATA = null; FUSE = null;
   setMeta({ count: 0, source:'—', version:'—', updated:'—', cacheState:'cleared' });
   els.results.innerHTML = '';
   // Keep favourites when clearing dataset cache
