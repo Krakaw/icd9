@@ -139,7 +139,7 @@ function cardHTML(rec){
     ? `<div class="tags">${rec.tags.map(t=>`<span class="tag-pill">${escapeHtml(t)}</span>`).join('')}</div>`
     : '';
   return `
-    <button class="star" title="${fav?'Unfavourite':'Favourite'}" aria-pressed="${fav?'true':'false'}" data-code="${rec.code}" aria-label="Favourite ${rec.code}">${fav?'★':'☆'}</button>
+    <button class="star" title="${fav?'Unfavourite':'Favourite'}" aria-pressed="${fav?'true':'false'}" data-code="${escapeHtml(rec.code)}" aria-label="Favourite ${escapeHtml(rec.code)}">${fav?'★':'☆'}</button>
     <div style="min-width:86px">
       <div class="code">${rec.code}</div>
       <div class="kind">${escapeHtml(rec.kind || '')}</div>
@@ -167,15 +167,12 @@ function renderSection(container, list){
 }
 
 // ===== Favourites (pinned) =====
-function getFavRecords(all=DATA){
-  if (!all) return [];
-  const byCode = new Map(all.map(r => [r.code, r]));
-  const favList = [...FAVS]
-    .map(code => byCode.get(code))
+function getFavRecords(){
+  return [...FAVS]
+    .map(code => DATA_MAP.get(code))
     .filter(Boolean)
     // sort by recent first, then code
     .sort((a,b) => (FAV_LRU[b.code]||0) - (FAV_LRU[a.code]||0) || a.code.localeCompare(b.code));
-  return favList;
 }
 function refreshFavouritesUI(){
   const favList = getFavRecords();
@@ -365,7 +362,7 @@ function openEditModal(code) {
   els.editModalOverlay.classList.add('show');
   els.editModal.classList.add('show');
   // Focus first field
-  requestAnimationFrame(() => document.getElementById('edit-name').focus());
+  requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById('edit-name').focus()));
   // Trap focus within modal
   els.editModal._focusTrap = function(e) {
     if (e.key !== 'Tab') return;
