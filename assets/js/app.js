@@ -54,8 +54,10 @@ async function sha256Hex(buffer) {
 
 // ===== Customizations (localStorage overlay) =====
 function safeParse(key, fallback) {
-  try { return JSON.parse(localStorage.getItem(key)) || fallback; }
-  catch { return fallback; }
+  try {
+    const raw = localStorage.getItem(key);
+    return raw !== null ? JSON.parse(raw) : fallback;
+  } catch { return fallback; }
 }
 
 let CUSTOMIZATIONS = safeParse(CUSTOM_STORAGE_KEY, {});
@@ -89,6 +91,7 @@ function setCustomizationsForCode(code, overrides) {
 // ===== State =====
 let FUSE = null;
 let DATA = null;
+let DATA_MAP = new Map(); // O(1) code -> record lookup
 let BASE_DATA = null; // raw data before customizations
 let FAVS = new Set(safeParse(FAV_STORAGE_KEY, []));
 let FAV_LRU = safeParse(FAV_LRU_KEY, {}); // code -> ts
@@ -139,7 +142,7 @@ function cardHTML(rec){
     <button class="star" title="${fav?'Unfavourite':'Favourite'}" aria-pressed="${fav?'true':'false'}" data-code="${rec.code}" aria-label="Favourite ${rec.code}">${fav?'★':'☆'}</button>
     <div style="min-width:86px">
       <div class="code">${rec.code}</div>
-      <div class="kind">${rec.kind}</div>
+      <div class="kind">${escapeHtml(rec.kind || '')}</div>
     </div>
     <div>
       <div class="name">${escapeHtml(rec.name || '')}</div>
@@ -211,6 +214,7 @@ function renderSearch(){
 
 // ===== Fuse bootstrap =====
 function buildFuse(data) {
+  DATA_MAP = new Map(data.map(r => [r.code, r]));
   FUSE = new Fuse(data, {
     includeScore: true,
     threshold: 0.28,
@@ -335,8 +339,7 @@ function createPillInput(containerId, items, placeholder) {
 }
 
 function getRecordByCode(code) {
-  if (!DATA) return null;
-  return DATA.find(r => r.code === code) || null;
+  return DATA_MAP.get(code) ?? null;
 }
 
 function openEditModal(code) {
@@ -362,13 +365,33 @@ function openEditModal(code) {
   els.editModalOverlay.classList.add('show');
   els.editModal.classList.add('show');
   // Focus first field
-  setTimeout(() => document.getElementById('edit-name').focus(), 50);
+  requestAnimationFrame(() => document.getElementById('edit-name').focus());
+  // Trap focus within modal
+  els.editModal._focusTrap = function(e) {
+    if (e.key !== 'Tab') return;
+    const focusable = Array.from(els.editModal.querySelectorAll(
+      'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter(el => el.offsetParent !== null);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+    } else {
+      if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  };
+  document.addEventListener('keydown', els.editModal._focusTrap);
 }
 
 function closeEditModal() {
   els.editModalOverlay.classList.remove('show');
   els.editModal.classList.remove('show');
   editState.code = null;
+  if (els.editModal._focusTrap) {
+    document.removeEventListener('keydown', els.editModal._focusTrap);
+    els.editModal._focusTrap = null;
+  }
 }
 
 function saveEdit() {
