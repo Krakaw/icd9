@@ -16,6 +16,21 @@
     <h1><img src="assets/icons/icon-96.png" alt="ICD-9 Lookup" /></h1>
     <span class="pill admin-only" id="pill-count">0 codes</span>
     <span class="pill admin-only" id="pill-source">source: —</span>
+
+    <!-- Time Calculator Widget -->
+    <div class="time-calc-widget" id="time-calc-widget" aria-label="Time calculator">
+      <button class="time-calc-toggle" id="time-calc-toggle" aria-expanded="false" aria-controls="time-calc-panel" title="Time calculator">⏱</button>
+      <div class="time-calc-panel" id="time-calc-panel" role="group" aria-label="Time calculator inputs">
+        <div class="time-calc-inputs">
+          <input class="time-calc-input" id="tc-start" type="text" placeholder="Start (11:04)" aria-label="Start time" maxlength="10" autocomplete="off" />
+          <input class="time-calc-input" id="tc-end" type="text" placeholder="End (14:30)" aria-label="End time" maxlength="10" autocomplete="off" />
+          <input class="time-calc-input tc-duration" id="tc-duration" type="text" placeholder="Mins" aria-label="Duration in minutes" maxlength="5" autocomplete="off" />
+          <span class="time-calc-result" id="tc-result" aria-live="polite"></span>
+          <button class="time-calc-clear" id="tc-clear" title="Clear all" aria-label="Clear calculator">✕</button>
+        </div>
+      </div>
+    </div>
+
     <label class="admin-toggle">
       <input type="checkbox" id="admin-checkbox" />
       <span>show admin</span>
@@ -91,5 +106,7 @@
   <script src="assets/js/fuse.min.js"></script>
   <!-- Main application JavaScript -->
   <script src="assets/js/app.js"></script>
+  <!-- Time Calculator Widget -->
+  <script type="module" src="assets/js/time-calc-widget.js"></script>
 </body>
 </html>
