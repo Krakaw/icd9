@@ -538,10 +538,32 @@ els.btnExport.addEventListener('click', async () => {
   URL.revokeObjectURL(url);
 });
 
+// ===== Billing Codes =====
+const BILLING_URL = 'data/billing-codes.json';
+
+// Global billing codes array — time-calc-widget.js reads this via window.BILLING_CODES
+window.BILLING_CODES = null;
+
+async function loadBillingCodes() {
+  try {
+    const resp = await fetch(BILLING_URL);
+    if (!resp.ok) throw new Error(`Fetch failed: ${resp.status}`);
+    window.BILLING_CODES = await resp.json();
+    // Notify time-calc widget that codes are ready
+    window.dispatchEvent(new CustomEvent('billingCodesLoaded'));
+  } catch (e) {
+    console.warn('Billing codes unavailable:', e.message);
+    window.BILLING_CODES = [];
+  }
+}
+
 // ===== Boot =====
 (async function boot(){
   try {
-    const hadCache = await loadFromCache();
+    const [, hadCache] = await Promise.all([
+      loadBillingCodes(),
+      loadFromCache(),
+    ]);
     if (!hadCache) await fetchAndCache();
     renderSearch();           // initial paint (favs pinned)
     els.q.focus();            // focus search
