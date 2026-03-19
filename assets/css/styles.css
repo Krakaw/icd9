@@ -341,6 +341,68 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
   }
 }
 
+/* ===== Billing Code Cards ===== */
+.billing-card {
+  border-color: #2a5a4a;
+  background: #1e2d28;
+}
+.billing-card:hover {
+  border-color: #3a9a7a;
+}
+
+.billing-code {
+  color: #4ecca8;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+.badge-msp {
+  background: #1a4a3a;
+  color: #4ecca8;
+  border: 1px solid #2a7a5a;
+  margin-top: 4px;
+}
+.badge-telehealth {
+  background: #1a3a4a;
+  color: #7ac8e8;
+  border: 1px solid #2a6a8a;
+  font-size: .72rem;
+  font-weight: 600;
+}
+
+.billing-category {
+  font-size: .82rem;
+  margin-top: 2px;
+}
+
+.billing-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.billing-fee {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #6ee7b7;
+  letter-spacing: .3px;
+}
+
+.billing-duration {
+  font-size: .82rem;
+  color: #aaa;
+}
+
 /* Admin toggle */
 .admin-toggle {
   display: flex;

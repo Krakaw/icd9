@@ -1,5 +1,5 @@
 // Service Worker for ICD-9 Lookup
-const CACHE_NAME = 'icd9-lookup-v2';
+const CACHE_NAME = 'icd9-lookup-v3';
 
 // Files to precache for offline use
 const PRECACHE_FILES = [
@@ -11,7 +11,8 @@ const PRECACHE_FILES = [
   './assets/js/app.js',
   './assets/js/time-calc.js',
   './assets/js/time-calc-widget.js',
-  './data/icd9.json'
+  './data/icd9.json',
+  './data/billing-codes.json'
 ];
 
 // Install: precache all static assets

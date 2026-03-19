@@ -1,11 +1,13 @@
 // ===== Config =====
-const DATA_URL = 'data/icd9.json';   // place this file in data directory
+const DATA_URL = 'data/icd9.json';
+const BILLING_DATA_URL = 'data/billing-codes.json';
 const DB_NAME  = 'icd9-cache';
 const STORE    = 'dataset';
 const KEY      = 'icd9-rich';
+const BILLING_KEY = 'billing-codes';
 const MAX_RESULTS = 100;
-const FAV_STORAGE_KEY = 'icd9:favs'; // localStorage string[] of codes
-const FAV_LRU_KEY     = 'icd9:favs:lru'; // recency map {code: timestamp}
+const FAV_STORAGE_KEY = 'icd9:favs'; // localStorage string[] of ids
+const FAV_LRU_KEY     = 'icd9:favs:lru'; // recency map {id: timestamp}
 const CUSTOM_STORAGE_KEY = 'icd9:customizations'; // code -> partial record overrides
 
 // ===== IndexedDB (dataset cache) =====
@@ -89,12 +91,14 @@ function setCustomizationsForCode(code, overrides) {
 }
 
 // ===== State =====
-let FUSE = null;
-let DATA = null;
-let DATA_MAP = new Map(); // O(1) code -> record lookup
-let BASE_DATA = null; // raw data before customizations
+let FUSE = null;          // ICD-9 Fuse instance
+let DATA = null;          // ICD-9 records (with customizations)
+let DATA_MAP = new Map(); // O(1) _id -> record lookup (both ICD-9 and billing)
+let BASE_DATA = null;     // raw ICD-9 data before customizations
+let BILLING_FUSE = null;  // Billing code Fuse instance
+let BILLING_DATA = null;  // Billing code records
 let FAVS = new Set(safeParse(FAV_STORAGE_KEY, []));
-let FAV_LRU = safeParse(FAV_LRU_KEY, {}); // code -> ts
+let FAV_LRU = safeParse(FAV_LRU_KEY, {}); // id -> ts
 
 const els = {
   q: document.getElementById('q'),
@@ -117,7 +121,7 @@ const els = {
 };
 
 // ===== Helpers =====
-function escapeHtml(s){ return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function setMeta({count, source, version, updated, cacheState}) {
   if (typeof count === 'number') els.pillCount.textContent = `${count.toLocaleString()} codes`;
   if (source) els.pillSource.textContent = `source: ${source}`;
@@ -129,19 +133,20 @@ function saveFavs() {
   localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify([...FAVS]));
   localStorage.setItem(FAV_LRU_KEY, JSON.stringify(FAV_LRU));
 }
-function isFav(code){ return FAVS.has(code); }
-function touchFav(code){ FAV_LRU[code] = Date.now(); }
+function isFav(id){ return FAVS.has(id); }
+function touchFav(id){ FAV_LRU[id] = Date.now(); }
 
 // ===== Cards =====
 function cardHTML(rec){
-  const fav = isFav(rec.code);
+  const fav = isFav(rec._id || rec.code);
+  const id = rec._id || rec.code;
   const tagsHtml = Array.isArray(rec.tags) && rec.tags.length
     ? `<div class="tags">${rec.tags.map(t=>`<span class="tag-pill">${escapeHtml(t)}</span>`).join('')}</div>`
     : '';
   return `
-    <button class="star" title="${fav?'Unfavourite':'Favourite'}" aria-pressed="${fav?'true':'false'}" data-code="${escapeHtml(rec.code)}" aria-label="Favourite ${escapeHtml(rec.code)}">${fav?'★':'☆'}</button>
+    <button class="star" title="${fav?'Unfavourite':'Favourite'}" aria-pressed="${fav?'true':'false'}" data-code="${escapeHtml(id)}" aria-label="Favourite ${escapeHtml(rec.code)}">${fav?'★':'☆'}</button>
     <div style="min-width:86px">
-      <div class="code">${rec.code}</div>
+      <div class="code">${escapeHtml(rec.code)}</div>
       <div class="kind">${escapeHtml(rec.kind || '')}</div>
     </div>
     <div>
@@ -153,14 +158,45 @@ function cardHTML(rec){
   `;
 }
 
+function billingCardHTML(rec){
+  const fav = isFav(rec._id);
+  const fee = rec.fee != null ? `$${Number(rec.fee).toFixed(2)}` : '';
+  const duration = rec.durationMin ? `${rec.durationMin} min` : '';
+  const telehealthBadge = rec.telehealth
+    ? `<span class="badge badge-telehealth" title="Telehealth available">📹 Telehealth</span>`
+    : '';
+  return `
+    <button class="star" title="${fav?'Unfavourite':'Favourite'}" aria-pressed="${fav?'true':'false'}" data-code="${escapeHtml(rec._id)}" aria-label="Favourite ${escapeHtml(rec.code)}">${fav?'★':'☆'}</button>
+    <div style="min-width:86px">
+      <div class="code billing-code">${escapeHtml(rec.code)}</div>
+      <span class="badge badge-msp">MSP</span>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div class="name">${escapeHtml(rec.description || '')}</div>
+      ${rec.category ? `<div class="billing-category muted">${escapeHtml(rec.category)}</div>` : ''}
+      <div class="billing-meta">
+        ${fee ? `<span class="billing-fee">${fee}</span>` : ''}
+        ${duration ? `<span class="billing-duration">⏱ ${duration}</span>` : ''}
+        ${telehealthBadge}
+      </div>
+    </div>
+  `;
+}
+
 function renderSection(container, list){
   container.innerHTML = '';
   const frag = document.createDocumentFragment();
   list.forEach(rec => {
     const card = document.createElement('div');
-    card.className = 'card';
-    card.dataset.code = rec.code;
-    card.innerHTML = cardHTML(rec);
+    if (rec._type === 'billing') {
+      card.className = 'card billing-card';
+      card.dataset.code = rec._id;
+      card.innerHTML = billingCardHTML(rec);
+    } else {
+      card.className = 'card';
+      card.dataset.code = rec._id || rec.code;
+      card.innerHTML = cardHTML(rec);
+    }
     frag.appendChild(card);
   });
   container.appendChild(frag);
@@ -169,10 +205,9 @@ function renderSection(container, list){
 // ===== Favourites (pinned) =====
 function getFavRecords(){
   return [...FAVS]
-    .map(code => DATA_MAP.get(code))
+    .map(id => DATA_MAP.get(id))
     .filter(Boolean)
-    // sort by recent first, then code
-    .sort((a,b) => (FAV_LRU[b.code]||0) - (FAV_LRU[a.code]||0) || a.code.localeCompare(b.code));
+    .sort((a,b) => (FAV_LRU[b._id||b.code]||0) - (FAV_LRU[a._id||a.code]||0) || (a._id||a.code).localeCompare(b._id||b.code));
 }
 function refreshFavouritesUI(){
   const favList = getFavRecords();
@@ -183,24 +218,38 @@ function refreshFavouritesUI(){
 
 // ===== Search render (favourites pinned first) =====
 function renderSearch(){
-  if (!DATA || !FUSE) return;
+  if (!DATA && !BILLING_DATA) return;
   const q = els.q.value.trim();
-  let hits = q ? FUSE.search(q).map(r => r.item) : DATA.slice(0, MAX_RESULTS*2);
 
-  // Partition: favourites first (preserving search order), then non-favs
+  let hits;
+  if (q) {
+    const icdHits = FUSE ? FUSE.search(q).map(r => ({ ...r.item, _score: r.score ?? 1 })) : [];
+    const billHits = BILLING_FUSE ? BILLING_FUSE.search(q).map(r => ({ ...r.item, _score: r.score ?? 1 })) : [];
+    // Interleave by relevance score (lower = more relevant in Fuse)
+    hits = [...icdHits, ...billHits].sort((a, b) => (a._score ?? 1) - (b._score ?? 1));
+  } else {
+    // Cap each source at half MAX_RESULTS so billing codes are always visible
+    const perSource = Math.floor(MAX_RESULTS / 2);
+    const icdDefault = DATA ? DATA.slice(0, perSource) : [];
+    const billDefault = BILLING_DATA ? BILLING_DATA.slice(0, perSource) : [];
+    hits = [...icdDefault, ...billDefault];
+  }
+
+  // Partition: favourites pinned at top, non-favs in results section
   const favSet = new Set([...FAVS]);
   const favHits = [];
   const otherHits = [];
-  for (const it of hits) (favSet.has(it.code) ? favHits : otherHits).push(it);
+  for (const it of hits) {
+    const id = it._id || it.code;
+    (favSet.has(id) ? favHits : otherHits).push(it);
+  }
 
-  // Favourites are already pinned at the top section; results section should show:
-  // - matching favourites (optional), then others. To avoid duplication, we only show non-favs here.
   renderSection(els.results, otherHits.slice(0, MAX_RESULTS));
 
-  // Update the pinned favourites section (filtered by query if you're searching)
+  // Pinned favourites section (filtered by query if searching)
   const allFavs = getFavRecords();
   const favFiltered = q
-    ? allFavs.filter(r => favHits.find(x => x.code === r.code))
+    ? allFavs.filter(r => favHits.find(x => (x._id||x.code) === (r._id||r.code)))
     : allFavs;
   els.favWrap.classList.toggle('hidden', favFiltered.length === 0);
   renderSection(els.favs, favFiltered);
@@ -211,8 +260,11 @@ function renderSearch(){
 
 // ===== Fuse bootstrap =====
 function buildFuse(data) {
-  DATA_MAP = new Map(data.map(r => [r.code, r]));
-  FUSE = new Fuse(data, {
+  // Add _id and _type to ICD-9 records
+  const enriched = data.map(r => ({ ...r, _id: r.code, _type: 'icd9' }));
+  // Merge into DATA_MAP (keep billing entries)
+  enriched.forEach(r => DATA_MAP.set(r._id, r));
+  FUSE = new Fuse(enriched, {
     includeScore: true,
     threshold: 0.28,
     ignoreLocation: true,
@@ -224,15 +276,35 @@ function buildFuse(data) {
       { name: 'tags',  weight: 0.10 },
     ]
   });
+  return enriched;
 }
 
-// ===== Load/cache dataset =====
+function buildBillingFuse(data) {
+  // Add _id and _type to billing records
+  const enriched = data.map(r => ({ ...r, _id: `billing:${r.code}`, _type: 'billing' }));
+  enriched.forEach(r => DATA_MAP.set(r._id, r));
+  BILLING_FUSE = new Fuse(enriched, {
+    includeScore: true,
+    threshold: 0.30,
+    ignoreLocation: true,
+    minMatchCharLength: 2,
+    keys: [
+      { name: 'code',        weight: 0.35 },
+      { name: 'description', weight: 0.40 },
+      { name: 'category',    weight: 0.15 },
+      { name: 'notes',       weight: 0.10 },
+    ]
+  });
+  return enriched;
+}
+
+// ===== Load/cache ICD-9 dataset =====
 async function loadFromCache() {
   const cached = await idbGet(KEY);
   if (cached && cached.data && Array.isArray(cached.data)) {
     BASE_DATA = cached.data;
-    DATA = applyCustomizations(BASE_DATA);
-    buildFuse(DATA);
+    const enriched = buildFuse(applyCustomizations(BASE_DATA));
+    DATA = enriched;
     setMeta({
       count: DATA.length,
       source: 'IndexedDB',
@@ -257,8 +329,8 @@ async function fetchAndCache() {
   await idbSet(KEY, { version, updated: Date.now(), data: json });
 
   BASE_DATA = json;
-  DATA = applyCustomizations(BASE_DATA);
-  buildFuse(DATA);
+  const enriched = buildFuse(applyCustomizations(BASE_DATA));
+  DATA = enriched;
   setMeta({
     count: DATA.length,
     source: 'network',
@@ -266,6 +338,31 @@ async function fetchAndCache() {
     updated: new Date().toLocaleString(),
     cacheState: 'updated'
   });
+}
+
+// ===== Load/cache Billing dataset =====
+async function loadBillingFromCache() {
+  const cached = await idbGet(BILLING_KEY);
+  if (cached && cached.data && Array.isArray(cached.data)) {
+    BILLING_DATA = buildBillingFuse(cached.data);
+    window.BILLING_CODES = cached.data;
+    window.dispatchEvent(new CustomEvent('billingCodesLoaded'));
+    return true;
+  }
+  return false;
+}
+async function fetchAndCacheBilling() {
+  const resp = await fetch(BILLING_DATA_URL, { cache: 'no-store' });
+  if (!resp.ok) throw new Error(`Billing fetch failed: ${resp.status}`);
+  const buf = await resp.arrayBuffer();
+  const version = await sha256Hex(buf);
+  const text = new TextDecoder('utf-8').decode(buf);
+  const json = JSON.parse(text);
+
+  await idbSet(BILLING_KEY, { version, updated: Date.now(), data: json });
+  BILLING_DATA = buildBillingFuse(json);
+  window.BILLING_CODES = json;
+  window.dispatchEvent(new CustomEvent('billingCodesLoaded'));
 }
 
 // ===== Edit Modal =====
@@ -335,15 +432,18 @@ function createPillInput(containerId, items, placeholder) {
   container.appendChild(inputRow);
 }
 
-function getRecordByCode(code) {
-  return DATA_MAP.get(code) ?? null;
+function getRecordById(id) {
+  return DATA_MAP.get(id) ?? null;
 }
 
-function openEditModal(code) {
-  const rec = getRecordByCode(code);
+function openEditModal(id) {
+  // Billing cards don't support editing
+  if (id && id.startsWith('billing:')) return;
+
+  const rec = getRecordById(id);
   if (!rec) return;
 
-  editState.code = code;
+  editState.code = rec.code;
   editState.syn = Array.isArray(rec.syn) ? [...rec.syn] : [];
   editState.tags = Array.isArray(rec.tags) ? [...rec.tags] : [];
 
@@ -356,7 +456,7 @@ function openEditModal(code) {
   createPillInput('edit-tags-container', editState.tags, 'Add tag…');
 
   // Show/hide reset button based on whether customizations exist
-  const hasCustom = !!getCustomizationsForCode(code);
+  const hasCustom = !!getCustomizationsForCode(rec.code);
   document.getElementById('edit-reset-btn').style.display = hasCustom ? 'inline-flex' : 'none';
 
   els.editModalOverlay.classList.add('show');
@@ -430,8 +530,8 @@ function saveEdit() {
 
   // Rebuild merged DATA and Fuse
   if (BASE_DATA) {
-    DATA = applyCustomizations(BASE_DATA);
-    buildFuse(DATA);
+    const enriched = buildFuse(applyCustomizations(BASE_DATA));
+    DATA = enriched;
   }
 
   closeEditModal();
@@ -445,8 +545,8 @@ function resetToDefault() {
   setCustomizationsForCode(code, null);
 
   if (BASE_DATA) {
-    DATA = applyCustomizations(BASE_DATA);
-    buildFuse(DATA);
+    const enriched = buildFuse(applyCustomizations(BASE_DATA));
+    DATA = enriched;
   }
 
   closeEditModal();
@@ -457,19 +557,19 @@ function resetToDefault() {
 function debounce(fn, ms=120){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 const onSearch = debounce(renderSearch, 80);
 
-els.q.addEventListener('input', () => { if (FUSE) onSearch(); });
+els.q.addEventListener('input', () => { if (FUSE || BILLING_FUSE) onSearch(); });
 
 // star clicks (event delegation on both sections)
 function onStarClick(e){
   const btn = e.target.closest('button.star'); if (!btn) return;
-  const code = btn.dataset.code;
-  if (!code) return;
-  if (FAVS.has(code)) {
-    FAVS.delete(code);
-    delete FAV_LRU[code];
+  const id = btn.dataset.code;
+  if (!id) return;
+  if (FAVS.has(id)) {
+    FAVS.delete(id);
+    delete FAV_LRU[id];
   } else {
-    FAVS.add(code);
-    touchFav(code);
+    FAVS.add(id);
+    touchFav(id);
   }
   saveFavs();
   renderSearch(); // re-render both sections (pins)
@@ -511,6 +611,7 @@ els.btnRefresh.addEventListener('click', async () => {
   els.btnRefresh.disabled = true;
   try {
     await fetchAndCache();
+    await fetchAndCacheBilling();
     renderSearch();
   } catch (e) {
     alert('Refresh failed: ' + e.message);
@@ -522,7 +623,10 @@ els.btnRefresh.addEventListener('click', async () => {
 
 els.btnClear.addEventListener('click', async () => {
   await idbDel(KEY);
+  await idbDel(BILLING_KEY);
   DATA = null; BASE_DATA = null; FUSE = null;
+  BILLING_DATA = null; BILLING_FUSE = null;
+  DATA_MAP = new Map();
   setMeta({ count: 0, source:'—', version:'—', updated:'—', cacheState:'cleared' });
   els.results.innerHTML = '';
   // Keep favourites when clearing dataset cache
@@ -539,14 +643,12 @@ els.btnExport.addEventListener('click', async () => {
 });
 
 // ===== Billing Codes =====
-const BILLING_URL = 'data/billing-codes.json';
-
 // Global billing codes array — time-calc-widget.js reads this via window.BILLING_CODES
 window.BILLING_CODES = null;
 
 async function loadBillingCodes() {
   try {
-    const resp = await fetch(BILLING_URL);
+    const resp = await fetch(BILLING_DATA_URL);
     if (!resp.ok) throw new Error(`Fetch failed: ${resp.status}`);
     window.BILLING_CODES = await resp.json();
     // Notify time-calc widget that codes are ready
@@ -560,11 +662,24 @@ async function loadBillingCodes() {
 // ===== Boot =====
 (async function boot(){
   try {
-    const [, hadCache] = await Promise.all([
-      loadBillingCodes(),
+    // Load ICD-9 cache; billing cache is fire-and-forget (failure must not block boot)
+    const [hadIcdCache, hadBillingCache] = await Promise.all([
       loadFromCache(),
+      loadBillingFromCache().catch(e => { console.warn('Billing cache load failed:', e); return false; }),
+      loadBillingCodes(),  // load window.BILLING_CODES for time-calc widget
     ]);
-    if (!hadCache) await fetchAndCache();
+
+    // ICD-9 fetch is critical — keep on the main boot path
+    if (!hadIcdCache) await fetchAndCache();
+
+    // Billing fetch is non-critical — fire-and-forget with its own catch
+    if (!hadBillingCache) {
+      fetchAndCacheBilling()
+        .then(() => renderSearch())
+        .catch(e => console.warn('Billing fetch failed (non-fatal):', e));
+    }
+
+
     renderSearch();           // initial paint (favs pinned)
     els.q.focus();            // focus search
   } catch (e) {
