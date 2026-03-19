@@ -56,7 +56,7 @@ function init() {
       if (hasStart && hasEnd && !hasDur) {
         // Start + End → duration
         const d = duration(startMins, endMins);
-        tcResult.textContent = formatDuration(d);
+        tcResult.textContent = `${formatDuration(d)} (${d} min)`;
         tcResult.className = 'time-calc-result ok';
       } else if (hasStart && hasDur && !hasEnd) {
         // Start + Duration → end time
@@ -71,7 +71,7 @@ function init() {
       } else if (filledCount === 3) {
         // All three filled — prefer Start+End→duration
         const d = duration(startMins, endMins);
-        tcResult.textContent = formatDuration(d);
+        tcResult.textContent = `${formatDuration(d)} (${d} min)`;
         tcResult.className = 'time-calc-result ok';
       }
     } catch {
