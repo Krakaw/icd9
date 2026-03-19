@@ -13,7 +13,8 @@ function getBillingBracket(durationMins) {
   if (durationMins < 30)  return null;  // below minimum
   if (durationMins < 45)  return 30;    // 1/2 hr
   if (durationMins < 60)  return 45;    // 3/4 hr
-  if (durationMins < 75)  return 60;    // 1 hr
+  if (durationMins < 68)  return 60;    // 1 hr
+  if (durationMins < 75)  return 68;    // extended psychiatry >68 min
   if (durationMins < 90)  return 75;    // 1 1/4 hr
   return 90;                            // 1 1/2 hr (max)
 }
