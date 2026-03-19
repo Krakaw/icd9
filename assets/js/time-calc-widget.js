@@ -15,7 +15,7 @@ function init() {
   const tcResult = document.getElementById('tc-result');
   const tcClear  = document.getElementById('tc-clear');
 
-  if (!toggle || !panel) return;
+  if (!toggle || !panel || !tcStart || !tcEnd || !tcDur || !tcResult || !tcClear) return;
 
   // Restore open state
   const savedOpen = localStorage.getItem(STORAGE_KEY) === 'true';
@@ -82,7 +82,6 @@ function init() {
 
   [tcStart, tcEnd, tcDur].forEach(el => {
     el.addEventListener('input', compute);
-    el.addEventListener('keyup', compute);
   });
 
   tcClear.addEventListener('click', () => {
