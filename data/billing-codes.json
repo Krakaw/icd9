@@ -1,0 +1,652 @@
+[
+  {
+    "code": "00610",
+    "description": "Consultation, psychiatry",
+    "fee": 247.37,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00605",
+    "description": "Emergency visit - psychiatry",
+    "fee": 144.57,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00622",
+    "description": "Emotionally disturbed child - consultation",
+    "fee": 441.73,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00623",
+    "description": "Emotionally disturbed family - consultation",
+    "fee": 441.73,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00624",
+    "description": "Evaluation interview with family member",
+    "fee": 54.58,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00611",
+    "description": "Extended adult psychiatry consultation > 68 minutes",
+    "fee": 324.92,
+    "durationMin": 68,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Extended consultation exceeding 68 minutes"
+  },
+  {
+    "code": "60633",
+    "description": "Family/conjoint telehealth therapy - per 1/2 hr",
+    "fee": 109.17,
+    "durationMin": 30,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "60639",
+    "description": "Family/conjoint telehealth therapy - per 1 1/2 hr",
+    "fee": 317.41,
+    "durationMin": 90,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "60636",
+    "description": "Family/conjoint telehealth therapy - per 1 hr",
+    "fee": 211.58,
+    "durationMin": 60,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "60635",
+    "description": "Family/conjoint telehealth therapy - per 3/4 hr",
+    "fee": 162.48,
+    "durationMin": 45,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "60638",
+    "description": "Family/conjoint telehealth therapy - per 1 1/4 hr",
+    "fee": 264.50,
+    "durationMin": 75,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "00613",
+    "description": "Geriatric consultation (age 75 years or older)",
+    "fee": 374.12,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Patient must be 75 years or older"
+  },
+  {
+    "code": "00615",
+    "description": "Hospital/institution inpatient or home visit",
+    "fee": 247.37,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "60632",
+    "description": "Individual telehealth psychiatric treatment, 1 hr",
+    "fee": 211.58,
+    "durationMin": 60,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "60630",
+    "description": "Individual telehealth psychiatric treatment, 1/2 hr",
+    "fee": 109.17,
+    "durationMin": 30,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "60631",
+    "description": "Individual telehealth psychiatric treatment, 3/4 hr",
+    "fee": 162.48,
+    "durationMin": 45,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "00645",
+    "description": "Patient management conference - 3rd parties, per 1/4 hr",
+    "fee": 54.58,
+    "durationMin": 15,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "60622",
+    "description": "Telehealth consult emotionally disturbed child psychiatry",
+    "fee": 441.73,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "60610",
+    "description": "Telehealth consultation psychiatry",
+    "fee": 247.37,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "60624",
+    "description": "Telehealth eval interview with family member, 1/2 hr",
+    "fee": 54.58,
+    "durationMin": 30,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "60613",
+    "description": "Telehealth geriatric consult psychiatry 75 yrs or older",
+    "fee": 374.12,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": "Patient must be 75 years or older"
+  },
+  {
+    "code": "60608",
+    "description": "Telehealth hospital in-patient visit - psychiatry",
+    "fee": 55.23,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "60645",
+    "description": "Telehealth patient management conference psychiatry",
+    "fee": 54.58,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "60626",
+    "description": "Telehealth repeat or limited consult emotionally disturbed child",
+    "fee": 220.85,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "60625",
+    "description": "Telehealth repeat or limited consult psychiatry",
+    "fee": 131.12,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "60614",
+    "description": "Telehealth repeat/limited geriatric consult psychiatry",
+    "fee": 187.06,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "60607",
+    "description": "Telehealth subsequent office visit psychiatry",
+    "fee": 55.23,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": true,
+    "notes": ""
+  },
+  {
+    "code": "00609",
+    "description": "Visit, home, psychiatry",
+    "fee": 74.34,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00608",
+    "description": "Visit, hospital, psychiatry",
+    "fee": 55.23,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00607",
+    "description": "Visit, office, psychiatry",
+    "fee": 55.23,
+    "durationMin": null,
+    "category": "Consultations / Visits",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00641",
+    "description": "Electroconvulsive therapy",
+    "fee": 91.17,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "ECT - per treatment session"
+  },
+  {
+    "code": "00671",
+    "description": "Group psychotherapy - 11 patients - per patient",
+    "fee": 19.82,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 11"
+  },
+  {
+    "code": "00672",
+    "description": "Group psychotherapy - 12 patients - per patient",
+    "fee": 18.61,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 12"
+  },
+  {
+    "code": "00668",
+    "description": "Group psychotherapy - 8 patients - per patient",
+    "fee": 25.46,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 8"
+  },
+  {
+    "code": "00665",
+    "description": "Group psychotherapy - 5 patients - per patient",
+    "fee": 33.78,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 5"
+  },
+  {
+    "code": "00664",
+    "description": "Group psychotherapy - 4 patients - per patient",
+    "fee": 38.86,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 4"
+  },
+  {
+    "code": "00669",
+    "description": "Group psychotherapy - 9 patients - per patient",
+    "fee": 23.88,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 9"
+  },
+  {
+    "code": "00667",
+    "description": "Group psychotherapy - 7 patients - per patient",
+    "fee": 27.42,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 7"
+  },
+  {
+    "code": "00666",
+    "description": "Group psychotherapy - 6 patients - per patient",
+    "fee": 30.05,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 6"
+  },
+  {
+    "code": "00670",
+    "description": "Group psychotherapy - 10 patients - per patient",
+    "fee": 22.60,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 10"
+  },
+  {
+    "code": "00663",
+    "description": "Group psychotherapy - 3 patients - per patient",
+    "fee": 48.65,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 3"
+  },
+  {
+    "code": "00681",
+    "description": "Group psychotherapy - >20 patients - per patient",
+    "fee": 13.42,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of more than 20"
+  },
+  {
+    "code": "00673",
+    "description": "Group psychotherapy - 13 patients - per patient",
+    "fee": 17.25,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 13"
+  },
+  {
+    "code": "00674",
+    "description": "Group psychotherapy - 14 patients - per patient",
+    "fee": 16.92,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 14"
+  },
+  {
+    "code": "00675",
+    "description": "Group psychotherapy - 15 patients - per patient",
+    "fee": 16.25,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 15"
+  },
+  {
+    "code": "00676",
+    "description": "Group psychotherapy - 16 patients - per patient",
+    "fee": 15.76,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 16"
+  },
+  {
+    "code": "00677",
+    "description": "Group psychotherapy - 17 patients - per patient",
+    "fee": 15.10,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 17"
+  },
+  {
+    "code": "00678",
+    "description": "Group psychotherapy - 18 patients - per patient",
+    "fee": 14.87,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 18"
+  },
+  {
+    "code": "00679",
+    "description": "Group psychotherapy - 19 patients - per patient",
+    "fee": 14.23,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 19"
+  },
+  {
+    "code": "00680",
+    "description": "Group psychotherapy - 20 patients - per patient",
+    "fee": 13.88,
+    "durationMin": null,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": "Per-patient rate for group of 20"
+  },
+  {
+    "code": "00639",
+    "description": "Psychotherapy family per 1 1/2 hr",
+    "fee": 317.41,
+    "durationMin": 90,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00638",
+    "description": "Psychotherapy family per 1 1/4 hr",
+    "fee": 264.50,
+    "durationMin": 75,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00633",
+    "description": "Psychotherapy family per 1/2 hr",
+    "fee": 109.17,
+    "durationMin": 30,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00635",
+    "description": "Psychotherapy family per 3/4 hr",
+    "fee": 162.48,
+    "durationMin": 45,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00636",
+    "description": "Psychotherapy family per hour",
+    "fee": 211.58,
+    "durationMin": 60,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00630",
+    "description": "Psychotherapy indiv. (off.,out-patient) per 1/2 hr",
+    "fee": 109.17,
+    "durationMin": 30,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00631",
+    "description": "Psychotherapy indiv. (off.,out-patient) per 3/4 hr",
+    "fee": 162.48,
+    "durationMin": 45,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00632",
+    "description": "Psychotherapy indiv. (off.,out-patient) per hour",
+    "fee": 211.58,
+    "durationMin": 60,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00652",
+    "description": "Psychotherapy indiv. (hosp or institut) per 1 hr",
+    "fee": 211.58,
+    "durationMin": 60,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00650",
+    "description": "Psychotherapy indiv. (hosp or institut) per 1/2 hr",
+    "fee": 109.17,
+    "durationMin": 30,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00651",
+    "description": "Psychotherapy indiv. (hosp or institut) per 3/4 hr",
+    "fee": 162.48,
+    "durationMin": 45,
+    "category": "Psychiatric Treatment",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00626",
+    "description": "Emotionally disturbed child - repeat consultation",
+    "fee": 220.85,
+    "durationMin": null,
+    "category": "Referred Cases",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00627",
+    "description": "Emotionally disturbed family - repeat consultation",
+    "fee": 220.85,
+    "durationMin": null,
+    "category": "Referred Cases",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00625",
+    "description": "Repeat consultation - psychiatry",
+    "fee": 131.12,
+    "durationMin": null,
+    "category": "Referred Cases",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  },
+  {
+    "code": "00614",
+    "description": "Repeat geriatric consultation",
+    "fee": 187.06,
+    "durationMin": null,
+    "category": "Referred Cases",
+    "specialty": "psychiatry",
+    "telehealth": false,
+    "notes": ""
+  }
+]
