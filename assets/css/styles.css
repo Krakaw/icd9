@@ -229,7 +229,7 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
 /* ===== Time Calculator Widget ===== */
 .time-calc-widget {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   flex-wrap: nowrap;
   margin-left: auto;
@@ -258,7 +258,8 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
 }
 .time-calc-panel.open {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .time-calc-inputs {
@@ -425,4 +426,114 @@ body .admin-only {
 /* Show admin elements when admin is enabled */
 body.admin-enabled .admin-only {
   display: block !important;
+}
+
+/* ===== Billing Code Suggestions ===== */
+.billing-suggest {
+  margin-top: 8px;
+  border-top: 1px solid #333;
+  padding-top: 8px;
+}
+.billing-suggest.hidden {
+  display: none;
+}
+
+.billing-suggest-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #7aa2ff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.billing-suggest-note {
+  font-size: 0.78rem;
+  color: #888;
+  font-style: italic;
+}
+
+.billing-suggest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.billing-suggest-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background: #1e1e1e;
+  cursor: pointer;
+  text-align: left;
+  color: #e0e0e0;
+  font-size: 0.82rem;
+  line-height: 1.3;
+  transition: border-color 0.12s, background 0.12s;
+  width: 100%;
+}
+.billing-suggest-item:hover {
+  border-color: #7aa2ff;
+  background: #252535;
+}
+.billing-suggest-item.copied {
+  border-color: #6ee7b7;
+  background: #1a2e28;
+}
+
+.billing-code {
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #b8c5ff;
+  flex-shrink: 0;
+  min-width: 48px;
+}
+
+.billing-desc {
+  flex: 1;
+  color: #ccc;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.billing-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.billing-telehealth-badge {
+  font-size: 0.72rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: #1a2e3a;
+  border: 1px solid #2a5a7a;
+  color: #5bc8f5;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.billing-fee {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6ee7b7;
+  flex-shrink: 0;
+}
+
+/* On narrow screens, allow desc to wrap */
+@media (max-width: 640px) {
+  .billing-suggest-item {
+    flex-wrap: wrap;
+  }
+  .billing-desc {
+    white-space: normal;
+    overflow: visible;
+  }
 }

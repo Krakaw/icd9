@@ -6,6 +6,150 @@ import { parseTime, duration, endTime, startTime, formatTime, formatDuration } f
 
 const STORAGE_KEY = 'icd9:timecalc:open';
 
+// ===== Bracket Logic =====
+// Maps a duration in minutes to the durationMin bracket used in billing codes.
+// Returns null if below minimum (< 30 min).
+function getBillingBracket(durationMins) {
+  if (durationMins < 30)  return null;  // below minimum
+  if (durationMins < 45)  return 30;    // 1/2 hr
+  if (durationMins < 60)  return 45;    // 3/4 hr
+  if (durationMins < 68)  return 60;    // 1 hr
+  if (durationMins < 75)  return 68;    // extended psychiatry >68 min
+  if (durationMins < 90)  return 75;    // 1 1/4 hr
+  return 90;                            // 1 1/2 hr (max)
+}
+
+// ===== Billing Suggestions =====
+// Returns codes matching the bracket, sorted: in-person first, then telehealth.
+function getSuggestedCodes(durationMins) {
+  const codes = window.BILLING_CODES;
+  if (!Array.isArray(codes) || codes.length === 0) return null;
+
+  const bracket = getBillingBracket(durationMins);
+  if (bracket === null) return [];
+
+  const matching = codes.filter(c =>
+    c.durationMin === bracket &&
+    c.durationMin !== null
+  );
+
+  // Sort: in-person (telehealth=false) first, then telehealth
+  matching.sort((a, b) => {
+    if (a.telehealth === b.telehealth) return 0;
+    return a.telehealth ? 1 : -1;
+  });
+
+  return matching;
+}
+
+function formatFee(fee) {
+  if (fee == null) return '';
+  return '$' + Number(fee).toFixed(2);
+}
+
+function renderSuggestions(container, durationMins) {
+  container.innerHTML = '';
+
+  // Billing codes not loaded yet — hide section
+  if (!Array.isArray(window.BILLING_CODES)) {
+    container.classList.add('hidden');
+    return;
+  }
+
+  const bracket = getBillingBracket(durationMins);
+
+  if (bracket === null) {
+    // Below minimum
+    container.classList.remove('hidden');
+    container.innerHTML = `
+      <div class="billing-suggest-header">Suggested Billing Codes</div>
+      <div class="billing-suggest-note">Below minimum billing duration (30 min)</div>
+    `;
+    return;
+  }
+
+  const suggestions = getSuggestedCodes(durationMins);
+
+  if (!suggestions || suggestions.length === 0) {
+    container.classList.add('hidden');
+    return;
+  }
+
+  container.classList.remove('hidden');
+
+  const bracketLabel = {
+    30: '½ hr', 45: '¾ hr', 60: '1 hr', 75: '1¼ hr', 90: '1½ hr'
+  }[bracket] || `${bracket} min`;
+
+  const header = document.createElement('div');
+  header.className = 'billing-suggest-header';
+  header.textContent = `Suggested Billing Codes (${bracketLabel})`;
+  container.appendChild(header);
+
+  const list = document.createElement('div');
+  list.className = 'billing-suggest-list';
+
+  suggestions.forEach(code => {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'billing-suggest-item';
+    item.dataset.code = code.code;
+    item.title = `Click to copy code ${code.code}`;
+
+    const codeEl = document.createElement('span');
+    codeEl.className = 'billing-code';
+    codeEl.textContent = code.code;
+
+    const descEl = document.createElement('span');
+    descEl.className = 'billing-desc';
+    descEl.textContent = code.description;
+
+    const metaEl = document.createElement('span');
+    metaEl.className = 'billing-meta';
+
+    if (code.telehealth) {
+      const badge = document.createElement('span');
+      badge.className = 'billing-telehealth-badge';
+      badge.textContent = 'telehealth';
+      metaEl.appendChild(badge);
+    }
+
+    if (code.fee != null) {
+      const feeEl = document.createElement('span');
+      feeEl.className = 'billing-fee';
+      feeEl.textContent = formatFee(code.fee);
+      metaEl.appendChild(feeEl);
+    }
+
+    item.appendChild(codeEl);
+    item.appendChild(descEl);
+    item.appendChild(metaEl);
+    list.appendChild(item);
+  });
+
+  container.appendChild(list);
+}
+
+// Copy code to clipboard and briefly highlight the button
+function copyCodeToClipboard(btn, code) {
+  navigator.clipboard.writeText(code).then(() => {
+    btn.classList.add('copied');
+    btn.title = `Copied!`;
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.title = `Click to copy code ${code}`;
+    }, 1500);
+  }).catch(() => {
+    // Fallback: select search input and populate it
+    const q = document.getElementById('q');
+    if (q) {
+      q.value = code;
+      q.dispatchEvent(new Event('input'));
+      q.focus();
+    }
+  });
+}
+
 function init() {
   const toggle   = document.getElementById('time-calc-toggle');
   const panel    = document.getElementById('time-calc-panel');
@@ -14,6 +158,7 @@ function init() {
   const tcDur    = document.getElementById('tc-duration');
   const tcResult = document.getElementById('tc-result');
   const tcClear  = document.getElementById('tc-clear');
+  const tcSuggest = document.getElementById('tc-billing-suggest');
 
   if (!toggle || !panel || !tcStart || !tcEnd || !tcDur || !tcResult || !tcClear) return;
 
@@ -30,6 +175,9 @@ function init() {
     localStorage.setItem(STORAGE_KEY, String(isOpen));
     if (isOpen) tcStart.focus();
   });
+
+  // Track the last calculated duration (start+end → duration result)
+  let lastDurationMins = null;
 
   function compute() {
     const startVal = tcStart.value.trim();
@@ -49,30 +197,48 @@ function init() {
     if (filledCount < 2) {
       tcResult.textContent = '';
       tcResult.className = 'time-calc-result';
+      // Clear suggestions when incomplete
+      if (tcSuggest) {
+        tcSuggest.innerHTML = '';
+        tcSuggest.classList.add('hidden');
+      }
+      lastDurationMins = null;
       return;
     }
 
     try {
+      let calculatedDuration = null;
+
       if (hasStart && hasEnd && !hasDur) {
         // Start + End → duration
         const d = duration(startMins, endMins);
         tcResult.textContent = `${formatDuration(d)} (${d} min)`;
         tcResult.className = 'time-calc-result ok';
+        calculatedDuration = d;
       } else if (hasStart && hasDur && !hasEnd) {
         // Start + Duration → end time
         const e = endTime(startMins, durMins);
         tcResult.textContent = formatTime(e);
         tcResult.className = 'time-calc-result ok';
+        calculatedDuration = durMins;
       } else if (hasEnd && hasDur && !hasStart) {
         // End + Duration → start time
         const s = startTime(endMins, durMins);
         tcResult.textContent = formatTime(s);
         tcResult.className = 'time-calc-result ok';
+        calculatedDuration = durMins;
       } else if (filledCount === 3) {
         // All three filled — prefer Start+End→duration
         const d = duration(startMins, endMins);
         tcResult.textContent = `${formatDuration(d)} (${d} min)`;
         tcResult.className = 'time-calc-result ok';
+        calculatedDuration = d;
+      }
+
+      // Show billing suggestions only when a duration is known
+      lastDurationMins = calculatedDuration;
+      if (tcSuggest && calculatedDuration !== null) {
+        renderSuggestions(tcSuggest, calculatedDuration);
       }
     } catch {
       tcResult.textContent = 'err';
@@ -90,8 +256,29 @@ function init() {
     tcDur.value   = '';
     tcResult.textContent = '';
     tcResult.className = 'time-calc-result';
+    lastDurationMins = null;
+    if (tcSuggest) {
+      tcSuggest.innerHTML = '';
+      tcSuggest.classList.add('hidden');
+    }
     tcStart.focus();
   });
+
+  // Delegation for copy-on-click on billing suggestions
+  if (tcSuggest) {
+    tcSuggest.addEventListener('click', e => {
+      const btn = e.target.closest('.billing-suggest-item');
+      if (!btn || !btn.dataset.code) return;
+      copyCodeToClipboard(btn, btn.dataset.code);
+    });
+
+    // Re-render if billing codes load after compute ran
+    window.addEventListener('billingCodesLoaded', () => {
+      if (lastDurationMins !== null) {
+        renderSuggestions(tcSuggest, lastDurationMins);
+      }
+    });
+  }
 }
 
 if (document.readyState === 'loading') {

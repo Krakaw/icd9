@@ -345,6 +345,8 @@ async function loadBillingFromCache() {
   const cached = await idbGet(BILLING_KEY);
   if (cached && cached.data && Array.isArray(cached.data)) {
     BILLING_DATA = buildBillingFuse(cached.data);
+    window.BILLING_CODES = cached.data;
+    window.dispatchEvent(new CustomEvent('billingCodesLoaded'));
     return true;
   }
   return false;
@@ -359,6 +361,8 @@ async function fetchAndCacheBilling() {
 
   await idbSet(BILLING_KEY, { version, updated: Date.now(), data: json });
   BILLING_DATA = buildBillingFuse(json);
+  window.BILLING_CODES = json;
+  window.dispatchEvent(new CustomEvent('billingCodesLoaded'));
 }
 
 // ===== Edit Modal =====
@@ -638,6 +642,23 @@ els.btnExport.addEventListener('click', async () => {
   URL.revokeObjectURL(url);
 });
 
+// ===== Billing Codes =====
+// Global billing codes array — time-calc-widget.js reads this via window.BILLING_CODES
+window.BILLING_CODES = null;
+
+async function loadBillingCodes() {
+  try {
+    const resp = await fetch(BILLING_DATA_URL);
+    if (!resp.ok) throw new Error(`Fetch failed: ${resp.status}`);
+    window.BILLING_CODES = await resp.json();
+    // Notify time-calc widget that codes are ready
+    window.dispatchEvent(new CustomEvent('billingCodesLoaded'));
+  } catch (e) {
+    console.warn('Billing codes unavailable:', e.message);
+    window.BILLING_CODES = [];
+  }
+}
+
 // ===== Boot =====
 (async function boot(){
   try {
@@ -645,6 +666,7 @@ els.btnExport.addEventListener('click', async () => {
     const [hadIcdCache, hadBillingCache] = await Promise.all([
       loadFromCache(),
       loadBillingFromCache().catch(e => { console.warn('Billing cache load failed:', e); return false; }),
+      loadBillingCodes(),  // load window.BILLING_CODES for time-calc widget
     ]);
 
     // ICD-9 fetch is critical — keep on the main boot path
@@ -656,6 +678,7 @@ els.btnExport.addEventListener('click', async () => {
         .then(() => renderSearch())
         .catch(e => console.warn('Billing fetch failed (non-fatal):', e));
     }
+
 
     renderSearch();           // initial paint (favs pinned)
     els.q.focus();            // focus search
