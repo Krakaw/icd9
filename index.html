@@ -108,5 +108,13 @@
   <script src="assets/js/app.js"></script>
   <!-- Time Calculator Widget -->
   <script type="module" src="assets/js/time-calc-widget.js"></script>
+  <!-- Service Worker registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(err => {
+        console.warn('SW registration failed:', err);
+      });
+    }
+  </script>
 </body>
 </html>
