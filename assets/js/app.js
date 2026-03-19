@@ -228,8 +228,10 @@ function renderSearch(){
     // Interleave by relevance score (lower = more relevant in Fuse)
     hits = [...icdHits, ...billHits].sort((a, b) => (a._score ?? 1) - (b._score ?? 1));
   } else {
-    const icdDefault = DATA ? DATA.slice(0, MAX_RESULTS) : [];
-    const billDefault = BILLING_DATA ? BILLING_DATA.slice(0, MAX_RESULTS) : [];
+    // Cap each source at half MAX_RESULTS so billing codes are always visible
+    const perSource = Math.floor(MAX_RESULTS / 2);
+    const icdDefault = DATA ? DATA.slice(0, perSource) : [];
+    const billDefault = BILLING_DATA ? BILLING_DATA.slice(0, perSource) : [];
     hits = [...icdDefault, ...billDefault];
   }
 
@@ -639,22 +641,27 @@ els.btnExport.addEventListener('click', async () => {
 // ===== Boot =====
 (async function boot(){
   try {
-    // Load both datasets in parallel
+    // Load ICD-9 cache; billing cache is fire-and-forget (failure must not block boot)
     const [hadIcdCache, hadBillingCache] = await Promise.all([
       loadFromCache(),
-      loadBillingFromCache(),
+      loadBillingFromCache().catch(e => { console.warn('Billing cache load failed:', e); return false; }),
     ]);
 
-    const fetches = [];
-    if (!hadIcdCache) fetches.push(fetchAndCache());
-    if (!hadBillingCache) fetches.push(fetchAndCacheBilling());
-    if (fetches.length) await Promise.all(fetches);
+    // ICD-9 fetch is critical — keep on the main boot path
+    if (!hadIcdCache) await fetchAndCache();
+
+    // Billing fetch is non-critical — fire-and-forget with its own catch
+    if (!hadBillingCache) {
+      fetchAndCacheBilling()
+        .then(() => renderSearch())
+        .catch(e => console.warn('Billing fetch failed (non-fatal):', e));
+    }
 
     renderSearch();           // initial paint (favs pinned)
     els.q.focus();            // focus search
   } catch (e) {
     console.error(e);
     setMeta({ cacheState: 'error' });
-    alert('Failed to initialize: ' + e.message + '\nPlace icd9.json and billing-codes.json next to this HTML.');
+    alert('Failed to initialize: ' + e.message + '\nPlace icd9.json next to this HTML.');
   }
 })();
