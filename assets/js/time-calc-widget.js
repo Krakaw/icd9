@@ -7,6 +7,11 @@ import { parseTime, duration, endTime, startTime, formatTime, formatDuration } f
 const STORAGE_KEY = 'icd9:timecalc:open';
 
 // ===== Bracket Logic =====
+const BRACKETS = [30, 45, 60, 68, 75, 90];
+const BRACKET_LABELS = {
+  30: '½ hr', 45: '¾ hr', 60: '1 hr', 68: '>68 min', 75: '1¼ hr', 90: '1½ hr'
+};
+
 // Maps a duration in minutes to the durationMin bracket used in billing codes.
 // Returns null if below minimum (< 30 min).
 function getBillingBracket(durationMins) {
@@ -19,7 +24,24 @@ function getBillingBracket(durationMins) {
   return 90;                            // 1 1/2 hr (max)
 }
 
+function getAdjacentBrackets(bracket) {
+  const idx = BRACKETS.indexOf(bracket);
+  return {
+    below: idx > 0 ? BRACKETS[idx - 1] : null,
+    above: idx < BRACKETS.length - 1 ? BRACKETS[idx + 1] : null,
+  };
+}
+
 // ===== Billing Suggestions =====
+// Returns codes for a specific bracket, sorted: in-person first, then telehealth.
+function getCodesForBracket(bracket) {
+  const codes = window.BILLING_CODES;
+  if (!Array.isArray(codes) || !bracket) return [];
+  return codes
+    .filter(c => c.durationMin === bracket)
+    .sort((a, b) => (a.telehealth === b.telehealth ? 0 : a.telehealth ? 1 : -1));
+}
+
 // Returns codes matching the bracket, sorted: in-person first, then telehealth.
 function getSuggestedCodes(durationMins) {
   const codes = window.BILLING_CODES;
@@ -28,18 +50,7 @@ function getSuggestedCodes(durationMins) {
   const bracket = getBillingBracket(durationMins);
   if (bracket === null) return [];
 
-  const matching = codes.filter(c =>
-    c.durationMin === bracket &&
-    c.durationMin !== null
-  );
-
-  // Sort: in-person (telehealth=false) first, then telehealth
-  matching.sort((a, b) => {
-    if (a.telehealth === b.telehealth) return 0;
-    return a.telehealth ? 1 : -1;
-  });
-
-  return matching;
+  return getCodesForBracket(bracket);
 }
 
 function formatFee(fee) {
@@ -77,57 +88,71 @@ function renderSuggestions(container, durationMins) {
 
   container.classList.remove('hidden');
 
-  const bracketLabel = {
-    30: '½ hr', 45: '¾ hr', 60: '1 hr', 75: '1¼ hr', 90: '1½ hr'
-  }[bracket] || `${bracket} min`;
-
   const header = document.createElement('div');
   header.className = 'billing-suggest-header';
-  header.textContent = `Suggested Billing Codes (${bracketLabel})`;
+  header.textContent = 'Suggested Billing Codes';
   container.appendChild(header);
 
-  const list = document.createElement('div');
-  list.className = 'billing-suggest-list';
+  // Helper to build a list of billing-suggest-item buttons
+  function buildList(codes, isPrimary) {
+    const list = document.createElement('div');
+    list.className = 'billing-suggest-list';
+    codes.forEach(code => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = isPrimary ? 'billing-suggest-item primary' : 'billing-suggest-item';
+      item.dataset.code = code.code;
+      item.title = `Click to copy code ${code.code}`;
 
-  suggestions.forEach(code => {
-    const item = document.createElement('button');
-    item.type = 'button';
-    item.className = 'billing-suggest-item';
-    item.dataset.code = code.code;
-    item.title = `Click to copy code ${code.code}`;
+      const codeEl = document.createElement('span');
+      codeEl.className = 'billing-code';
+      codeEl.textContent = code.code;
 
-    const codeEl = document.createElement('span');
-    codeEl.className = 'billing-code';
-    codeEl.textContent = code.code;
+      const descEl = document.createElement('span');
+      descEl.className = 'billing-desc';
+      descEl.textContent = code.description;
 
-    const descEl = document.createElement('span');
-    descEl.className = 'billing-desc';
-    descEl.textContent = code.description;
+      const metaEl = document.createElement('span');
+      metaEl.className = 'billing-meta';
 
-    const metaEl = document.createElement('span');
-    metaEl.className = 'billing-meta';
+      if (code.telehealth) {
+        const badge = document.createElement('span');
+        badge.className = 'billing-telehealth-badge';
+        badge.textContent = 'telehealth';
+        metaEl.appendChild(badge);
+      }
 
-    if (code.telehealth) {
-      const badge = document.createElement('span');
-      badge.className = 'billing-telehealth-badge';
-      badge.textContent = 'telehealth';
-      metaEl.appendChild(badge);
-    }
+      if (code.fee != null) {
+        const feeEl = document.createElement('span');
+        feeEl.className = 'billing-fee';
+        feeEl.textContent = formatFee(code.fee);
+        metaEl.appendChild(feeEl);
+      }
 
-    if (code.fee != null) {
-      const feeEl = document.createElement('span');
-      feeEl.className = 'billing-fee';
-      feeEl.textContent = formatFee(code.fee);
-      metaEl.appendChild(feeEl);
-    }
+      item.appendChild(codeEl);
+      item.appendChild(descEl);
+      item.appendChild(metaEl);
+      list.appendChild(item);
+    });
+    return list;
+  }
 
-    item.appendChild(codeEl);
-    item.appendChild(descEl);
-    item.appendChild(metaEl);
-    list.appendChild(item);
+  // Primary section (exact bracket)
+  container.appendChild(buildList(suggestions, true));
+
+  // Adjacent sections
+  const { below, above } = getAdjacentBrackets(bracket);
+  [below, above].forEach(adjBracket => {
+    if (!adjBracket) return;
+    const adjCodes = getCodesForBracket(adjBracket);
+    if (adjCodes.length === 0) return;
+
+    const subheader = document.createElement('div');
+    subheader.className = 'billing-suggest-subheader';
+    subheader.textContent = `Also consider — ${BRACKET_LABELS[adjBracket] || adjBracket + ' min'}`;
+    container.appendChild(subheader);
+    container.appendChild(buildList(adjCodes, false));
   });
-
-  container.appendChild(list);
 }
 
 // Copy code to clipboard and briefly highlight the button

@@ -483,6 +483,23 @@ body.admin-enabled .admin-only {
   border-color: #6ee7b7;
   background: #1a2e28;
 }
+.billing-suggest-item.primary {
+  border-color: #4ecca8;
+  background: #1a2d26;
+  border-left: 3px solid #4ecca8;
+}
+.billing-suggest-item.primary:hover {
+  border-color: #4ecca8;
+  background: #1f3830;
+}
+.billing-suggest-subheader {
+  font-size: 0.72rem;
+  color: #666;
+  font-style: italic;
+  margin-top: 6px;
+  margin-bottom: 2px;
+  padding-left: 2px;
+}
 
 .billing-code {
   font-family: monospace;
