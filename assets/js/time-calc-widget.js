@@ -286,7 +286,7 @@ function init() {
       tcDaysResult.className = 'time-calc-days-result';
       return;
     }
-    const days = parseFloat(val);
+    const days = parseInt(val, 10);
     const result = daysAgo(days);
     if (result === null) {
       tcDaysResult.textContent = '—';
