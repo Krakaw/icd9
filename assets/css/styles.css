@@ -320,6 +320,37 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
   color: #e0e0e0;
 }
 
+.time-calc-days-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.time-calc-input.tc-days-ago {
+  width: 90px;
+  -moz-appearance: textfield;
+}
+.time-calc-input.tc-days-ago::-webkit-inner-spin-button,
+.time-calc-input.tc-days-ago::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.time-calc-days-result {
+  font-size: .85rem;
+  font-weight: 600;
+  color: #888;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+.time-calc-days-result.ok {
+  color: #6ee7b7;
+}
+.time-calc-days-result.err {
+  color: #ff9999;
+}
+
 /* Responsive: on narrow screens collapse to stacked layout */
 @media (max-width: 640px) {
   .time-calc-widget {

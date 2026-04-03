@@ -123,3 +123,19 @@ export function formatDuration(totalMins) {
   const m = totalMins % 60;
   return `${h}h ${m}m`;
 }
+
+/**
+ * Calculate the date that many days ago from today using LOCAL time.
+ *
+ * @param {number} days — number of days ago (must be >= 0)
+ * @returns {string} date string in "YYYY-MM-DD" format, or null if invalid
+ */
+export function daysAgo(days) {
+  if (typeof days !== 'number' || isNaN(days) || days < 0) return null;
+  const d = new Date();
+  d.setDate(d.getDate() - Math.floor(days));
+  const yyyy = d.getFullYear();
+  const mm   = String(d.getMonth() + 1).padStart(2, '0');
+  const dd   = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
