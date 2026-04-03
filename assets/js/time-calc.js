@@ -127,7 +127,7 @@ export function formatDuration(totalMins) {
 /**
  * Calculate the date that many days ago from today using LOCAL time.
  *
- * @param {number} days — number of days ago (must be >= 0)
+ * @param {number} days — number of days ago (must be >= 0; fractional values are silently truncated via Math.floor)
  * @returns {string} date string in "YYYY-MM-DD" format, or null if invalid
  */
 export function daysAgo(days) {
