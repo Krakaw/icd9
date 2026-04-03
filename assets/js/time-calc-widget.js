@@ -2,7 +2,7 @@
  * time-calc-widget.js — Time calculator widget for the ICD-9 header.
  * Imports pure utilities from time-calc.js (ES module).
  */
-import { parseTime, duration, endTime, startTime, formatTime, formatDuration } from './time-calc.js';
+import { parseTime, duration, endTime, startTime, formatTime, formatDuration, daysAgo } from './time-calc.js';
 
 const STORAGE_KEY = 'icd9:timecalc:open';
 
@@ -176,14 +176,16 @@ function copyCodeToClipboard(btn, code) {
 }
 
 function init() {
-  const toggle   = document.getElementById('time-calc-toggle');
-  const panel    = document.getElementById('time-calc-panel');
-  const tcStart  = document.getElementById('tc-start');
-  const tcEnd    = document.getElementById('tc-end');
-  const tcDur    = document.getElementById('tc-duration');
-  const tcResult = document.getElementById('tc-result');
-  const tcClear  = document.getElementById('tc-clear');
-  const tcSuggest = document.getElementById('tc-billing-suggest');
+  const toggle      = document.getElementById('time-calc-toggle');
+  const panel       = document.getElementById('time-calc-panel');
+  const tcStart     = document.getElementById('tc-start');
+  const tcEnd       = document.getElementById('tc-end');
+  const tcDur       = document.getElementById('tc-duration');
+  const tcResult    = document.getElementById('tc-result');
+  const tcClear     = document.getElementById('tc-clear');
+  const tcSuggest   = document.getElementById('tc-billing-suggest');
+  const tcDaysAgo   = document.getElementById('tc-days-ago');
+  const tcDaysResult = document.getElementById('tc-days-result');
 
   if (!toggle || !panel || !tcStart || !tcEnd || !tcDur || !tcResult || !tcClear) return;
 
@@ -275,6 +277,30 @@ function init() {
     el.addEventListener('input', compute);
   });
 
+  // ===== Days Ago Calculator =====
+  function computeDaysAgo() {
+    if (!tcDaysAgo || !tcDaysResult) return;
+    const val = tcDaysAgo.value.trim();
+    if (val === '') {
+      tcDaysResult.textContent = '';
+      tcDaysResult.className = 'time-calc-days-result';
+      return;
+    }
+    const days = parseFloat(val);
+    const result = daysAgo(days);
+    if (result === null) {
+      tcDaysResult.textContent = '—';
+      tcDaysResult.className = 'time-calc-days-result err';
+    } else {
+      tcDaysResult.textContent = result;
+      tcDaysResult.className = 'time-calc-days-result ok';
+    }
+  }
+
+  if (tcDaysAgo) {
+    tcDaysAgo.addEventListener('input', computeDaysAgo);
+  }
+
   tcClear.addEventListener('click', () => {
     tcStart.value = '';
     tcEnd.value   = '';
@@ -286,6 +312,8 @@ function init() {
       tcSuggest.innerHTML = '';
       tcSuggest.classList.add('hidden');
     }
+    if (tcDaysAgo)   { tcDaysAgo.value = ''; }
+    if (tcDaysResult) { tcDaysResult.textContent = ''; tcDaysResult.className = 'time-calc-days-result'; }
     tcStart.focus();
   });
 
