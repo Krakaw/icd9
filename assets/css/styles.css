@@ -233,6 +233,14 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
   gap: 8px;
   flex-wrap: nowrap;
   margin-left: auto;
+  min-width: 0;
+}
+/* When the panel is open, give the widget its own row so inputs fit the viewport */
+.time-calc-widget:has(.time-calc-panel.open) {
+  width: 100%;
+  margin-left: 0;
+  flex-basis: 100%;
+  order: 10;
 }
 
 .time-calc-toggle {
@@ -260,17 +268,21 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .time-calc-inputs {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 .time-calc-input {
-  width: 90px;
+  flex: 1 1 90px;
+  min-width: 0;
   padding: 5px 8px;
   border-radius: 8px;
   border: 1px solid #404040;
@@ -278,11 +290,10 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
   color: #e0e0e0;
   font-size: .85rem;
   outline: none;
-  min-width: 0;
-  flex-shrink: 0;
 }
 .time-calc-input.tc-duration {
-  width: 56px;
+  flex: 0 1 70px;
+  min-width: 56px;
 }
 .time-calc-input:focus {
   border-color: #7aa2ff;
@@ -295,7 +306,7 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
   min-width: 54px;
   text-align: left;
   color: #888;
-  flex-shrink: 0;
+  flex: 1 1 auto;
 }
 .time-calc-result.ok {
   color: #6ee7b7;
@@ -357,18 +368,6 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
     margin-left: 0;
     width: 100%;
     order: 10;
-  }
-  .time-calc-panel.open {
-    flex: 1;
-  }
-  .time-calc-inputs {
-    flex-wrap: wrap;
-  }
-  .time-calc-input {
-    width: 80px;
-  }
-  .time-calc-input.tc-duration {
-    width: 52px;
   }
 }
 
