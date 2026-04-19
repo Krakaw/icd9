@@ -1,5 +1,5 @@
 // Service Worker for ICD-9 Lookup
-const CACHE_NAME = 'icd9-lookup-v3';
+const CACHE_NAME = 'icd9-lookup-v5';
 
 // Files to precache for offline use
 const PRECACHE_FILES = [
@@ -21,7 +21,7 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => Promise.allSettled(
         PRECACHE_FILES.map(file =>
-          cache.add(file).catch(err => {
+          cache.add(new Request(file, { cache: 'reload' })).catch(err => {
             console.warn(`SW: Failed to cache ${file}:`, err);
           })
         )

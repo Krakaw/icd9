@@ -483,6 +483,30 @@ body.admin-enabled .admin-only {
   font-style: italic;
 }
 
+.billing-suggest-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.billing-suggest-column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.billing-suggest-column-header {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #9aa5c0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #2a2a2a;
+  margin-bottom: 2px;
+}
+
 .billing-suggest-list {
   display: flex;
   flex-direction: column;
@@ -504,6 +528,7 @@ body.admin-enabled .admin-only {
   line-height: 1.3;
   transition: border-color 0.12s, background 0.12s;
   width: 100%;
+  flex-wrap: wrap;
 }
 .billing-suggest-item:hover {
   border-color: #7aa2ff;
@@ -522,15 +547,6 @@ body.admin-enabled .admin-only {
   border-color: #4ecca8;
   background: #1f3830;
 }
-.billing-suggest-subheader {
-  font-size: 0.72rem;
-  color: #666;
-  font-style: italic;
-  margin-top: 6px;
-  margin-bottom: 2px;
-  padding-left: 2px;
-}
-
 .billing-code {
   font-family: monospace;
   font-weight: 700;
@@ -541,11 +557,11 @@ body.admin-enabled .admin-only {
 }
 
 .billing-desc {
-  flex: 1;
+  flex: 1 1 140px;
+  min-width: 0;
   color: #ccc;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .billing-meta {
@@ -574,7 +590,7 @@ body.admin-enabled .admin-only {
   flex-shrink: 0;
 }
 
-/* On narrow screens, allow desc to wrap */
+/* On narrow screens, allow desc to wrap and stack columns */
 @media (max-width: 640px) {
   .billing-suggest-item {
     flex-wrap: wrap;
@@ -582,5 +598,8 @@ body.admin-enabled .admin-only {
   .billing-desc {
     white-space: normal;
     overflow: visible;
+  }
+  .billing-suggest-columns {
+    grid-template-columns: 1fr;
   }
 }
