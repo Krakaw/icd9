@@ -18,8 +18,8 @@ const SHORT_VISIT_CODES = new Set(['00607', '00608', '00609', '60607', '60608'])
 // (< 25 min) — visit codes apply in that case.
 function getBillingBracket(durationMins) {
   if (durationMins < 25)  return null;  // below therapy bracket → visit code
-  if (durationMins < 45)  return 30;    // 1/2 hr
-  if (durationMins < 60)  return 45;    // 3/4 hr
+  if (durationMins < 38)  return 30;    // 1/2 hr  (midpoint 30↔45)
+  if (durationMins < 53)  return 45;    // 3/4 hr  (midpoint 45↔60)
   if (durationMins < 68)  return 60;    // 1 hr
   if (durationMins < 75)  return 68;    // extended psychiatry >68 min
   if (durationMins < 90)  return 75;    // 1 1/4 hr
