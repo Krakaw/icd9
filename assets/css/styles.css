@@ -1,8 +1,8 @@
 :root { --gap: 12px; }
 body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; background:#1a1a1a; color:#e0e0e0; }
 header { display:flex; gap:var(--gap); align-items:center; flex-wrap:wrap; }
-h1 { font-size: 1.25rem; margin:0 12px 0 0; }
-h1 img { vertical-align: middle; }
+h1 { font-size: 1.25rem; margin:0 8px 0 0; line-height:0; }
+h1 img { vertical-align: middle; height:28px; width:auto; }
 .pill { background:#2a2a3a; color:#b8c5ff; border:1px solid #4a4a6a; padding:4px 8px; border-radius:999px; font-size:.85rem; }
 .controls { display:flex; gap:var(--gap); flex-wrap:wrap; margin-top:12px; }
 input[type="text"]{ flex:1; min-width:260px; padding:10px 12px; border-radius:10px; border:1px solid #404040; outline:none; font-size:1rem; background:#2a2a2a; color:#e0e0e0; }
@@ -229,18 +229,12 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
 /* ===== Time Calculator Widget ===== */
 .time-calc-widget {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
   margin-left: auto;
   min-width: 0;
-}
-/* When the panel is open, give the widget its own row so inputs fit the viewport */
-.time-calc-widget:has(.time-calc-panel.open) {
-  width: 100%;
-  margin-left: 0;
-  flex-basis: 100%;
-  order: 10;
+  position: relative;
 }
 
 .time-calc-toggle {
@@ -266,34 +260,33 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
 }
 .time-calc-panel.open {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  flex: 1 1 auto;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 0 1 auto;
   min-width: 0;
 }
 
-.time-calc-inputs {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  width: 100%;
+.time-calc-inputs,
+.time-calc-days-row {
+  display: contents;
 }
 
 .time-calc-input {
-  flex: 1 1 90px;
+  flex: 0 1 80px;
   min-width: 0;
-  padding: 5px 8px;
-  border-radius: 8px;
+  padding: 4px 7px;
+  border-radius: 6px;
   border: 1px solid #404040;
   background: #2a2a2a;
   color: #e0e0e0;
-  font-size: .85rem;
+  font-size: .82rem;
   outline: none;
 }
 .time-calc-input.tc-duration {
-  flex: 0 1 70px;
-  min-width: 56px;
+  flex: 0 1 56px;
+  min-width: 48px;
 }
 .time-calc-input:focus {
   border-color: #7aa2ff;
@@ -301,12 +294,12 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
 }
 
 .time-calc-result {
-  font-size: .85rem;
+  font-size: .82rem;
   font-weight: 600;
   min-width: 54px;
   text-align: left;
   color: #888;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
 }
 .time-calc-result.ok {
   color: #6ee7b7;
@@ -331,15 +324,9 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
   color: #e0e0e0;
 }
 
-.time-calc-days-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-}
-
 .time-calc-input.tc-days-ago {
-  width: 90px;
+  flex: 0 1 80px;
+  width: auto;
   -moz-appearance: textfield;
 }
 .time-calc-input.tc-days-ago::-webkit-inner-spin-button,
@@ -433,19 +420,50 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
   color: #aaa;
 }
 
-/* Admin toggle */
+/* Admin toggle (icon-only) */
 .admin-toggle {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
-  color: #aaa;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .admin-toggle input[type="checkbox"] {
-  margin: 0;
-  cursor: pointer;
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.admin-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #555;
+  font-size: 14px;
+  line-height: 1;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.admin-toggle:hover .admin-icon {
+  color: #aaa;
+  border-color: #555;
+}
+
+.admin-toggle input[type="checkbox"]:focus-visible + .admin-icon {
+  border-color: #7aa2ff;
+  box-shadow: 0 0 0 2px rgba(122,162,255,.3);
+}
+
+.admin-toggle input[type="checkbox"]:checked + .admin-icon {
+  color: #b8c5ff;
+  border-color: #7aa2ff;
+  background: #2a2a3a;
 }
 
 /* Admin elements that can be hidden */
@@ -460,6 +478,7 @@ body.admin-enabled .admin-only {
 
 /* ===== Billing Code Suggestions ===== */
 .billing-suggest {
+  flex-basis: 100%;
   margin-top: 8px;
   border-top: 1px solid #333;
   padding-top: 8px;
