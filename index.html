@@ -18,22 +18,15 @@
     <span class="pill admin-only" id="pill-source">source: —</span>
 
     <!-- Time Calculator Widget -->
-    <div class="time-calc-widget" id="time-calc-widget" aria-label="Time calculator">
-      <button class="time-calc-toggle" id="time-calc-toggle" aria-expanded="false" aria-controls="time-calc-panel" title="Time calculator">⏱</button>
-      <div class="time-calc-panel" id="time-calc-panel" role="group" aria-label="Time calculator inputs">
-        <div class="time-calc-inputs">
-          <input class="time-calc-input" id="tc-start" type="text" placeholder="Start (11:04)" aria-label="Start time" maxlength="10" autocomplete="off" />
-          <input class="time-calc-input" id="tc-end" type="text" placeholder="End (14:30)" aria-label="End time" maxlength="10" autocomplete="off" />
-          <input class="time-calc-input tc-duration" id="tc-duration" type="text" placeholder="Mins" aria-label="Duration in minutes" maxlength="5" autocomplete="off" />
-          <span class="time-calc-result" id="tc-result" aria-live="polite"></span>
-          <button class="time-calc-clear" id="tc-clear" title="Clear all" aria-label="Clear calculator">✕</button>
-        </div>
-        <div class="time-calc-days-row">
-          <input class="time-calc-input tc-days-ago" id="tc-days-ago" type="number" min="0" step="1" placeholder="Days ago" aria-label="Days ago" autocomplete="off" />
-          <span class="time-calc-days-result" id="tc-days-result" aria-live="polite"></span>
-        </div>
-        <div class="billing-suggest hidden" id="tc-billing-suggest" aria-live="polite" aria-label="Suggested billing codes"></div>
-      </div>
+    <div class="time-calc-widget" id="time-calc-widget" role="group" aria-label="Time calculator">
+      <input class="time-calc-input" id="tc-start" type="text" placeholder="Start" aria-label="Start time" maxlength="10" autocomplete="off" />
+      <input class="time-calc-input" id="tc-end" type="text" placeholder="End" aria-label="End time" maxlength="10" autocomplete="off" />
+      <input class="time-calc-input tc-duration" id="tc-duration" type="text" placeholder="Min" aria-label="Duration in minutes" maxlength="5" autocomplete="off" />
+      <span class="time-calc-result" id="tc-result" aria-live="polite"></span>
+      <input class="time-calc-input tc-days-ago" id="tc-days-ago" type="number" min="0" step="1" placeholder="Days" aria-label="Days ago" autocomplete="off" />
+      <span class="time-calc-days-result" id="tc-days-result" aria-live="polite"></span>
+      <button class="time-calc-clear" id="tc-clear" title="Clear all" aria-label="Clear calculator">✕</button>
+      <div class="billing-suggest hidden" id="tc-billing-suggest" aria-live="polite" aria-label="Suggested billing codes"></div>
     </div>
 
     <label class="admin-toggle" title="Toggle admin controls" aria-label="Toggle admin controls">

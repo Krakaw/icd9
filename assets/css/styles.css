@@ -230,53 +230,17 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
 .time-calc-widget {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   flex-wrap: wrap;
   margin-left: auto;
   min-width: 0;
   position: relative;
 }
 
-.time-calc-toggle {
-  background: transparent;
-  border: 1px solid #404040;
-  color: #aaa;
-  border-radius: 8px;
-  padding: 5px 9px;
-  font-size: 1rem;
-  cursor: pointer;
-  line-height: 1;
-  flex-shrink: 0;
-  transition: border-color 0.15s, color 0.15s;
-}
-.time-calc-toggle:hover,
-.time-calc-toggle[aria-expanded="true"] {
-  border-color: #7aa2ff;
-  color: #b8c5ff;
-}
-
-.time-calc-panel {
-  display: none;
-}
-.time-calc-panel.open {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex: 0 1 auto;
-  min-width: 0;
-}
-
-.time-calc-inputs,
-.time-calc-days-row {
-  display: contents;
-}
-
 .time-calc-input {
-  flex: 0 1 80px;
+  flex: 0 1 70px;
   min-width: 0;
-  padding: 4px 7px;
+  padding: 4px 6px;
   border-radius: 6px;
   border: 1px solid #404040;
   background: #2a2a2a;
@@ -285,8 +249,8 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
   outline: none;
 }
 .time-calc-input.tc-duration {
-  flex: 0 1 56px;
-  min-width: 48px;
+  flex: 0 1 50px;
+  min-width: 44px;
 }
 .time-calc-input:focus {
   border-color: #7aa2ff;
@@ -294,9 +258,9 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
 }
 
 .time-calc-result {
-  font-size: .82rem;
+  font-size: .8rem;
   font-weight: 600;
-  min-width: 54px;
+  min-width: 44px;
   text-align: left;
   color: #888;
   flex: 0 1 auto;
@@ -325,7 +289,7 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
 }
 
 .time-calc-input.tc-days-ago {
-  flex: 0 1 80px;
+  flex: 0 1 60px;
   width: auto;
   -moz-appearance: textfield;
 }
@@ -336,10 +300,10 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
 }
 
 .time-calc-days-result {
-  font-size: .85rem;
+  font-size: .8rem;
   font-weight: 600;
   color: #888;
-  min-width: 80px;
+  min-width: 60px;
   flex-shrink: 0;
 }
 .time-calc-days-result.ok {
@@ -478,10 +442,16 @@ body.admin-enabled .admin-only {
 
 /* ===== Billing Code Suggestions ===== */
 .billing-suggest {
-  flex-basis: 100%;
-  margin-top: 8px;
-  border-top: 1px solid #333;
-  padding-top: 8px;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  width: min(420px, calc(100vw - 32px));
+  background: #1f1f1f;
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.45);
 }
 .billing-suggest.hidden {
   display: none;

@@ -4,8 +4,6 @@
  */
 import { parseTime, duration, endTime, startTime, formatTime, formatDuration, daysAgo } from './time-calc.js';
 
-const STORAGE_KEY = 'icd9:timecalc:open';
-
 // ===== Bracket Logic =====
 const MAX_SUGGESTIONS = 5;
 
@@ -184,8 +182,6 @@ function copyCodeToClipboard(btn, code) {
 }
 
 function init() {
-  const toggle      = document.getElementById('time-calc-toggle');
-  const panel       = document.getElementById('time-calc-panel');
   const tcStart     = document.getElementById('tc-start');
   const tcEnd       = document.getElementById('tc-end');
   const tcDur       = document.getElementById('tc-duration');
@@ -195,21 +191,7 @@ function init() {
   const tcDaysAgo   = document.getElementById('tc-days-ago');
   const tcDaysResult = document.getElementById('tc-days-result');
 
-  if (!toggle || !panel || !tcStart || !tcEnd || !tcDur || !tcResult || !tcClear) return;
-
-  // Restore open state
-  const savedOpen = localStorage.getItem(STORAGE_KEY) === 'true';
-  if (savedOpen) {
-    panel.classList.add('open');
-    toggle.setAttribute('aria-expanded', 'true');
-  }
-
-  toggle.addEventListener('click', () => {
-    const isOpen = panel.classList.toggle('open');
-    toggle.setAttribute('aria-expanded', String(isOpen));
-    localStorage.setItem(STORAGE_KEY, String(isOpen));
-    if (isOpen) tcStart.focus();
-  });
+  if (!tcStart || !tcEnd || !tcDur || !tcResult || !tcClear) return;
 
   // Track the last calculated duration (start+end → duration result)
   let lastDurationMins = null;
