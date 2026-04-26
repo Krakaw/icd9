@@ -683,8 +683,7 @@ async function loadBillingCodes() {
     renderSearch();           // initial paint (favs pinned)
     els.q.focus();            // focus search
   } catch (e) {
-    console.error(e);
+    console.error('Failed to initialize: ' + e.message + '\nPlace icd9.json next to this HTML.', e);
     setMeta({ cacheState: 'error' });
-    alert('Failed to initialize: ' + e.message + '\nPlace icd9.json next to this HTML.');
   }
 })();

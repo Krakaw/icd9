@@ -232,13 +232,13 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
   align-items: center;
   gap: 4px;
   flex-wrap: wrap;
-  margin-left: auto;
   min-width: 0;
   position: relative;
 }
 
-.time-calc-input {
-  flex: 0 1 70px;
+.time-calc-widget .time-calc-input {
+  flex: 0 0 auto;
+  width: 70px;
   min-width: 0;
   padding: 4px 6px;
   border-radius: 6px;
@@ -248,11 +248,14 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
   font-size: .82rem;
   outline: none;
 }
-.time-calc-input.tc-duration {
-  flex: 0 1 50px;
-  min-width: 44px;
+.time-calc-widget .time-calc-input.tc-duration {
+  width: 50px;
 }
-.time-calc-input:focus {
+.time-calc-widget .time-calc-input.tc-days-ago {
+  width: 60px;
+  -moz-appearance: textfield;
+}
+.time-calc-widget .time-calc-input:focus {
   border-color: #7aa2ff;
   box-shadow: 0 0 0 2px rgba(122,162,255,.25);
 }
@@ -288,11 +291,6 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
   color: #e0e0e0;
 }
 
-.time-calc-input.tc-days-ago {
-  flex: 0 1 60px;
-  width: auto;
-  -moz-appearance: textfield;
-}
 .time-calc-input.tc-days-ago::-webkit-inner-spin-button,
 .time-calc-input.tc-days-ago::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -311,15 +309,6 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
 }
 .time-calc-days-result.err {
   color: #ff9999;
-}
-
-/* Responsive: on narrow screens collapse to stacked layout */
-@media (max-width: 640px) {
-  .time-calc-widget {
-    margin-left: 0;
-    width: 100%;
-    order: 10;
-  }
 }
 
 /* ===== Billing Code Cards ===== */
@@ -390,6 +379,7 @@ h2 { font-size:1rem; margin:0 0 8px 0; color:#d0d0d0; display:flex; align-items:
   align-items: center;
   cursor: pointer;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .admin-toggle input[type="checkbox"] {
