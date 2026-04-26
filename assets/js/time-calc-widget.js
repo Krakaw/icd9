@@ -89,7 +89,19 @@ function renderSuggestions(container, durationMins) {
 
   const header = document.createElement('div');
   header.className = 'billing-suggest-header';
-  header.textContent = 'Suggested Billing Codes';
+
+  const headerTitle = document.createElement('span');
+  headerTitle.textContent = 'Suggested Billing Codes';
+  header.appendChild(headerTitle);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'billing-suggest-close';
+  closeBtn.setAttribute('aria-label', 'Hide suggestions');
+  closeBtn.title = 'Hide suggestions';
+  closeBtn.textContent = '✕';
+  header.appendChild(closeBtn);
+
   container.appendChild(header);
 
   const columns = document.createElement('div');
@@ -195,6 +207,10 @@ function init() {
 
   // Track the last calculated duration (start+end → duration result)
   let lastDurationMins = null;
+  // Duration at which the user dismissed the suggestions popover. While the
+  // calculated duration matches this, keep the popover hidden so they can
+  // close it without clearing the times.
+  let dismissedAtDuration = null;
 
   function compute() {
     const startVal = tcStart.value.trim();
@@ -252,9 +268,13 @@ function init() {
         calculatedDuration = d;
       }
 
-      // Show billing suggestions only when a duration is known
       lastDurationMins = calculatedDuration;
-      if (tcSuggest && calculatedDuration !== null) {
+      // Reset the dismissed flag whenever the duration changes so a new
+      // duration re-opens the popover.
+      if (calculatedDuration !== dismissedAtDuration) dismissedAtDuration = null;
+      // Show billing suggestions only when a duration is known and the user
+      // hasn't dismissed them at this duration.
+      if (tcSuggest && calculatedDuration !== null && calculatedDuration !== dismissedAtDuration) {
         renderSuggestions(tcSuggest, calculatedDuration);
       }
     } catch {
@@ -298,6 +318,7 @@ function init() {
     tcResult.textContent = '';
     tcResult.className = 'time-calc-result';
     lastDurationMins = null;
+    dismissedAtDuration = null;
     if (tcSuggest) {
       tcSuggest.innerHTML = '';
       tcSuggest.classList.add('hidden');
@@ -307,9 +328,14 @@ function init() {
     tcStart.focus();
   });
 
-  // Delegation for copy-on-click on billing suggestions
+  // Delegation for copy-on-click on billing suggestions and dismiss button
   if (tcSuggest) {
     tcSuggest.addEventListener('click', e => {
+      if (e.target.closest('.billing-suggest-close')) {
+        dismissedAtDuration = lastDurationMins;
+        tcSuggest.classList.add('hidden');
+        return;
+      }
       const btn = e.target.closest('.billing-suggest-item');
       if (!btn || !btn.dataset.code) return;
       copyCodeToClipboard(btn, btn.dataset.code);
@@ -317,7 +343,7 @@ function init() {
 
     // Re-render if billing codes load after compute ran
     window.addEventListener('billingCodesLoaded', () => {
-      if (lastDurationMins !== null) {
+      if (lastDurationMins !== null && lastDurationMins !== dismissedAtDuration) {
         renderSuggestions(tcSuggest, lastDurationMins);
       }
     });

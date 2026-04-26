@@ -448,12 +448,32 @@ body.admin-enabled .admin-only {
 }
 
 .billing-suggest-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   font-size: 0.75rem;
   font-weight: 600;
   color: #7aa2ff;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 6px;
+}
+
+.billing-suggest-close {
+  background: transparent;
+  border: 1px solid #333;
+  color: #888;
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.billing-suggest-close:hover {
+  color: #e0e0e0;
+  border-color: #666;
 }
 
 .billing-suggest-note {
