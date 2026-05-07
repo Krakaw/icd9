@@ -430,6 +430,61 @@ body.admin-enabled .admin-only {
   display: block !important;
 }
 
+/* ===== Time Log ===== */
+.time-log {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
+}
+.time-log.hidden {
+  display: none;
+}
+.time-log-table {
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  color: #ccc;
+}
+.time-log-table th,
+.time-log-table td {
+  padding: 2px 8px;
+  text-align: left;
+  font-weight: normal;
+  white-space: nowrap;
+}
+.time-log-table th {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid #2a2a2a;
+}
+.time-log-table td {
+  font-family: monospace;
+  color: #e0e0e0;
+}
+.time-log-table tbody tr:hover {
+  background: #222;
+}
+.time-log-clear {
+  background: transparent;
+  border: 1px solid #404040;
+  color: #888;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  align-self: center;
+  margin-left: auto;
+}
+.time-log-clear:hover {
+  border-color: #9a4a4a;
+  color: #ff9999;
+}
+
 /* ===== Billing Code Suggestions ===== */
 .billing-suggest {
   position: absolute;

@@ -35,6 +35,16 @@
     </label>
   </header>
 
+  <div class="time-log hidden" id="tc-times-log" aria-label="Recorded times">
+    <table class="time-log-table">
+      <thead>
+        <tr><th>Start</th><th>End</th><th>Min</th></tr>
+      </thead>
+      <tbody id="tc-times-body"></tbody>
+    </table>
+    <button type="button" class="time-log-clear" id="tc-times-clear" title="Clear all times">Clear times</button>
+  </div>
+
   <div class="controls">
     <input id="q" type="text" placeholder="Search by code, name, or synonyms… (e.g., 296.20, depression, cholera)" autocomplete="off" />
     <button class="admin-only" id="btn-refresh" title="Fetch icd9.json and update cache">Refresh dataset</button>

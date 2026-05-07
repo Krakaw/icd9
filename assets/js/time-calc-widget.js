@@ -202,8 +202,50 @@ function init() {
   const tcSuggest   = document.getElementById('tc-billing-suggest');
   const tcDaysAgo   = document.getElementById('tc-days-ago');
   const tcDaysResult = document.getElementById('tc-days-result');
+  const tcTimesLog   = document.getElementById('tc-times-log');
+  const tcTimesBody  = document.getElementById('tc-times-body');
+  const tcTimesClear = document.getElementById('tc-times-clear');
 
   if (!tcStart || !tcEnd || !tcDur || !tcResult || !tcClear) return;
+
+  const timesLog = [];
+
+  function captureTimes() {
+    const startMins = parseTime(tcStart.value.trim());
+    const endMins   = parseTime(tcEnd.value.trim());
+    const durVal    = tcDur.value.trim();
+    const durMins   = durVal !== '' ? parseInt(durVal, 10) : null;
+
+    const hasStart = startMins !== null;
+    const hasEnd   = endMins !== null;
+    const hasDur   = durMins !== null && !isNaN(durMins) && durMins >= 0;
+
+    try {
+      if (hasStart && hasEnd) return { start: startMins, end: endMins, duration: duration(startMins, endMins) };
+      if (hasStart && hasDur) return { start: startMins, end: endTime(startMins, durMins), duration: durMins };
+      if (hasEnd && hasDur)   return { start: startTime(endMins, durMins), end: endMins, duration: durMins };
+    } catch { /* noop */ }
+    return null;
+  }
+
+  function renderTimesLog() {
+    if (!tcTimesLog || !tcTimesBody) return;
+    tcTimesBody.innerHTML = '';
+    if (timesLog.length === 0) {
+      tcTimesLog.classList.add('hidden');
+      return;
+    }
+    tcTimesLog.classList.remove('hidden');
+    timesLog.forEach(entry => {
+      const tr = document.createElement('tr');
+      [formatTime(entry.start), formatTime(entry.end), String(entry.duration)].forEach(text => {
+        const td = document.createElement('td');
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+      tcTimesBody.appendChild(tr);
+    });
+  }
 
   // Track the last calculated duration (start+end → duration result)
   let lastDurationMins = null;
@@ -285,7 +327,34 @@ function init() {
 
   [tcStart, tcEnd, tcDur].forEach(el => {
     el.addEventListener('input', compute);
+    el.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const captured = captureTimes();
+      if (!captured) return;
+      e.preventDefault();
+      timesLog.push(captured);
+      renderTimesLog();
+      tcStart.value = formatTime(captured.end);
+      tcEnd.value   = '';
+      tcDur.value   = '';
+      tcResult.textContent = '';
+      tcResult.className = 'time-calc-result';
+      lastDurationMins = null;
+      dismissedAtDuration = null;
+      if (tcSuggest) {
+        tcSuggest.innerHTML = '';
+        tcSuggest.classList.add('hidden');
+      }
+      tcEnd.focus();
+    });
   });
+
+  if (tcTimesClear) {
+    tcTimesClear.addEventListener('click', () => {
+      timesLog.length = 0;
+      renderTimesLog();
+    });
+  }
 
   // ===== Days Ago Calculator =====
   function computeDaysAgo() {
