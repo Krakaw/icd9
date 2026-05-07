@@ -347,6 +347,22 @@ function init() {
         renderSuggestions(tcSuggest, lastDurationMins);
       }
     });
+
+    // Dismiss the popover on any click outside it.
+    document.addEventListener('click', e => {
+      if (tcSuggest.classList.contains('hidden')) return;
+      if (tcSuggest.contains(e.target)) return;
+      dismissedAtDuration = lastDurationMins;
+      tcSuggest.classList.add('hidden');
+    });
+
+    // Dismiss the popover on Escape.
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      if (tcSuggest.classList.contains('hidden')) return;
+      dismissedAtDuration = lastDurationMins;
+      tcSuggest.classList.add('hidden');
+    });
   }
 }
 
