@@ -97,6 +97,7 @@ let DATA_MAP = new Map(); // O(1) _id -> record lookup (both ICD-9 and billing)
 let BASE_DATA = null;     // raw ICD-9 data before customizations
 let BILLING_FUSE = null;  // Billing code Fuse instance
 let BILLING_DATA = null;  // Billing code records
+let BILLING_CACHE_VERSION = null; // sha256 of cached billing data, for revalidation
 let FAVS = new Set(safeParse(FAV_STORAGE_KEY, []));
 let FAV_LRU = safeParse(FAV_LRU_KEY, {}); // id -> ts
 
@@ -344,12 +345,33 @@ async function fetchAndCache() {
 async function loadBillingFromCache() {
   const cached = await idbGet(BILLING_KEY);
   if (cached && cached.data && Array.isArray(cached.data)) {
+    BILLING_CACHE_VERSION = cached.version ?? null;
     BILLING_DATA = buildBillingFuse(cached.data);
     window.BILLING_CODES = cached.data;
     window.dispatchEvent(new CustomEvent('billingCodesLoaded'));
     return true;
   }
   return false;
+}
+// Background revalidation: if the shipped billing file changed (e.g. updated
+// fees), refresh the IndexedDB cache so stale dollar amounts aren't shown.
+async function refreshBillingIfStale() {
+  try {
+    const resp = await fetch(BILLING_DATA_URL, { cache: 'no-store' });
+    if (!resp.ok) return;
+    const buf = await resp.arrayBuffer();
+    const version = await sha256Hex(buf);
+    if (version === BILLING_CACHE_VERSION) return; // cache is current
+    const json = JSON.parse(new TextDecoder('utf-8').decode(buf));
+    await idbSet(BILLING_KEY, { version, updated: Date.now(), data: json });
+    BILLING_CACHE_VERSION = version;
+    BILLING_DATA = buildBillingFuse(json);
+    window.BILLING_CODES = json;
+    window.dispatchEvent(new CustomEvent('billingCodesLoaded'));
+    renderSearch();
+  } catch (e) {
+    console.warn('Billing revalidation failed (non-fatal):', e);
+  }
 }
 async function fetchAndCacheBilling() {
   const resp = await fetch(BILLING_DATA_URL, { cache: 'no-store' });
@@ -360,6 +382,7 @@ async function fetchAndCacheBilling() {
   const json = JSON.parse(text);
 
   await idbSet(BILLING_KEY, { version, updated: Date.now(), data: json });
+  BILLING_CACHE_VERSION = version;
   BILLING_DATA = buildBillingFuse(json);
   window.BILLING_CODES = json;
   window.dispatchEvent(new CustomEvent('billingCodesLoaded'));
@@ -677,6 +700,9 @@ async function loadBillingCodes() {
       fetchAndCacheBilling()
         .then(() => renderSearch())
         .catch(e => console.warn('Billing fetch failed (non-fatal):', e));
+    } else {
+      // Served from cache — revalidate in the background so updated fees appear.
+      refreshBillingIfStale();
     }
 
 
