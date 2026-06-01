@@ -429,6 +429,21 @@ function init() {
 
   if (tcDaysAgo) {
     tcDaysAgo.addEventListener('input', computeDaysAgo);
+
+    // Keep the "days ago" date live: if the local day rolls over while the
+    // tab sits in the background, recompute when it becomes visible/focused
+    // so the shown date reflects today, not the day it was last edited.
+    let lastComputedDay = new Date().toDateString();
+    const recomputeIfDayChanged = () => {
+      const today = new Date().toDateString();
+      if (today === lastComputedDay) return;
+      lastComputedDay = today;
+      computeDaysAgo();
+    };
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) recomputeIfDayChanged();
+    });
+    window.addEventListener('focus', recomputeIfDayChanged);
   }
 
   tcClear.addEventListener('click', () => {
