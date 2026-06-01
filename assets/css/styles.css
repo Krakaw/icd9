@@ -469,6 +469,18 @@ body.admin-enabled .admin-only {
 .time-log-table tbody tr:hover {
   background: #222;
 }
+.time-log-del {
+  background: transparent;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: 0 2px;
+}
+.time-log-del:hover {
+  color: #ff9999;
+}
 .time-log-clear {
   background: transparent;
   border: 1px solid #404040;

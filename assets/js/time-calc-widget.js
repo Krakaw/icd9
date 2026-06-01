@@ -208,7 +208,30 @@ function init() {
 
   if (!tcStart || !tcEnd || !tcDur || !tcResult || !tcClear) return;
 
-  const timesLog = [];
+  const TIMES_LOG_KEY = 'icd9.timesLog';
+
+  function loadTimesLog() {
+    try {
+      const raw = localStorage.getItem(TIMES_LOG_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      // Keep only well-formed numeric entries.
+      return parsed.filter(e =>
+        e && typeof e.start === 'number' && typeof e.end === 'number' && typeof e.duration === 'number'
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  function saveTimesLog() {
+    try {
+      localStorage.setItem(TIMES_LOG_KEY, JSON.stringify(timesLog));
+    } catch { /* storage unavailable or full — keep in-memory state */ }
+  }
+
+  const timesLog = loadTimesLog();
 
   function captureTimes() {
     const startMins = parseTime(tcStart.value.trim());
@@ -236,13 +259,23 @@ function init() {
       return;
     }
     tcTimesLog.classList.remove('hidden');
-    timesLog.forEach(entry => {
+    timesLog.forEach((entry, idx) => {
       const tr = document.createElement('tr');
       [formatTime(entry.start), formatTime(entry.end), String(entry.duration)].forEach(text => {
         const td = document.createElement('td');
         td.textContent = text;
         tr.appendChild(td);
       });
+      const delTd = document.createElement('td');
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'time-log-del';
+      delBtn.dataset.index = String(idx);
+      delBtn.title = 'Delete this entry';
+      delBtn.setAttribute('aria-label', 'Delete this entry');
+      delBtn.textContent = '✕';
+      delTd.appendChild(delBtn);
+      tr.appendChild(delTd);
       tcTimesBody.appendChild(tr);
     });
   }
@@ -333,6 +366,7 @@ function init() {
       if (!captured) return;
       e.preventDefault();
       timesLog.push(captured);
+      saveTimesLog();
       renderTimesLog();
       tcStart.value = formatTime(captured.end);
       tcEnd.value   = '';
@@ -352,9 +386,26 @@ function init() {
   if (tcTimesClear) {
     tcTimesClear.addEventListener('click', () => {
       timesLog.length = 0;
+      saveTimesLog();
       renderTimesLog();
     });
   }
+
+  // Delegated per-row delete.
+  if (tcTimesBody) {
+    tcTimesBody.addEventListener('click', e => {
+      const btn = e.target.closest('.time-log-del');
+      if (!btn) return;
+      const idx = parseInt(btn.dataset.index, 10);
+      if (isNaN(idx) || idx < 0 || idx >= timesLog.length) return;
+      timesLog.splice(idx, 1);
+      saveTimesLog();
+      renderTimesLog();
+    });
+  }
+
+  // Render any persisted entries on load.
+  renderTimesLog();
 
   // ===== Days Ago Calculator =====
   function computeDaysAgo() {
