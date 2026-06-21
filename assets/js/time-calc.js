@@ -139,3 +139,20 @@ export function daysAgo(days) {
   const dd   = String(d.getDate()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd}`;
 }
+
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+/**
+ * Return the day-of-week name for a "YYYY-MM-DD" date string, parsed in LOCAL time.
+ *
+ * @param {string} dateStr — date string in "YYYY-MM-DD" format
+ * @returns {string} weekday name (e.g. "Monday"), or null if invalid
+ */
+export function weekdayOf(dateStr) {
+  if (typeof dateStr !== 'string') return null;
+  const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  if (isNaN(d.getTime())) return null;
+  return WEEKDAYS[d.getDay()];
+}

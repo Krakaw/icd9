@@ -2,7 +2,7 @@
  * time-calc-widget.js — Time calculator widget for the ICD-9 header.
  * Imports pure utilities from time-calc.js (ES module).
  */
-import { parseTime, duration, endTime, startTime, formatTime, formatDuration, daysAgo } from './time-calc.js';
+import { parseTime, duration, endTime, startTime, formatTime, formatDuration, daysAgo, weekdayOf } from './time-calc.js';
 
 // ===== Bracket Logic =====
 const MAX_SUGGESTIONS = 5;
@@ -422,8 +422,15 @@ function init() {
       tcDaysResult.textContent = '—';
       tcDaysResult.className = 'time-calc-days-result err';
     } else {
-      tcDaysResult.textContent = result;
       tcDaysResult.className = 'time-calc-days-result ok';
+      tcDaysResult.innerHTML = '';
+      const dateLine = document.createElement('span');
+      dateLine.className = 'tc-days-date';
+      dateLine.textContent = result;
+      const dowLine = document.createElement('span');
+      dowLine.className = 'tc-days-dow';
+      dowLine.textContent = weekdayOf(result) || '';
+      tcDaysResult.append(dateLine, dowLine);
     }
   }
 
